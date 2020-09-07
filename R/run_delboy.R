@@ -14,7 +14,8 @@
 #' @param grna_column A character string naming the column containing sgRNA IDs. Defaults to `sgRNA`. Ignored if `crispr` set to `FALSE`.
 #'
 #' @return An object of class `delboy`.
-#' @importFrom dplyr filter
+#' @importFrom dplyr select filter
+#' @importFrom magrittr %<>%
 #' @export
 #' @references
 #' Kalinka, A. T. 2020.
@@ -32,7 +33,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
     stop(paste("expected 'data' to be a data frame, got instead an object of class",class(data)))
   }
 
-  ### 2. Sanity checks.
+  ### 2A. Sanity checks.
   if(any(!group_1 %in% colnames(data)))
     stop(paste("unable to find the following group 1 columns:",setdiff(group_1,colnames(data))))
   if(any(!group_2 %in% colnames(data)))
@@ -44,22 +45,46 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
       stop(paste("unable to find the gRNA column",grna_column))
   }
 
+  ### 2B. Remove any irrelevant columns.
+  if(crispr){
+    data <- data[,c(gene_column, grna_column, group_1, group_2)]
+  }else{
+    data <- data[,c(gene_column, group_1, group_2)]
+  }
+
   ### 3. Normalize counts.
   if(!is.null(normalize)){
 
   }
 
   ### 4. Filter low count data prior to batch correction.
-  data <- data[rowSums(data[,c(group_1, group_2)]) > filter_cutoff,]
+  tryCatch(data <- data[rowSums(data[,c(group_1, group_2)]) > filter_cutoff,],
+           error = function(e) stop(paste("unable to filter data:",e))
+  )
+  if(nrow(data) < 200)
+    stop(paste("only",nrow(data),"rows remain after filtering: consider using a less stringent 'filter_cutoff' value"))
 
   ### 5. Batch correction.
   if(!is.null(batches)){
 
   }
 
-  ### 6. Prep data for DR analysis.
+  ### 6. Run DESeq2 on the original dataset.
+  if(crispr){
+    deseq2_res <- delboy::run_deseq2(data, group_1, group_2, grna_column) %>%
+      dplyr::left_join(data, by = c(id = grna_column))
+  }else{
+    deseq2_res <- delboy::run_deseq2(data, group_1, group_2, gene_column) %>%
+      dplyr::left_join(data, by = c(id = gene_column))
+  }
+
+  ### 7. Estimate parameters for validation.
+  ## 7A. Number of non-null cases.
 
 
-  ### 7. Elastic-net logistic regression to identify differentially-represented genes or gRNAs.
+  ### . Prep data for DR analysis.
+
+
+  ### . Elastic-net logistic regression to identify differentially-represented genes or gRNAs.
 
 }
