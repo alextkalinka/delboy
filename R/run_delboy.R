@@ -83,7 +83,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   non.null <- delboy::estimate_number_non_nulls(deseq2_res$pvalue)
 
   ## 7B. Estimate non-null logFC distribution.
-  lfdr.lfc <- locfdr(deseq2_res$log2FoldChange)
+  lfdr.lfc <- locfdr::locfdr(deseq2_res$log2FoldChange)
   non_null.dens <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],11]
   non_null.lfc <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],1]
 

@@ -14,10 +14,7 @@
 run_deseq2 <- function(data, group_1, group_2, gene_column){
   tryCatch({
     # Prep data for DESeq2.
-    data.m <- as.matrix(data[,c(group_1, group_2)])
-    rownames(data.m) <- data[,gene_column]
-    data.m <- apply(data.m, 2, round)
-    data.m <- apply(data.m, 2, function(x) ifelse(x < 0, 0, x))
+    data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
     # Run DESeq2.
     tr <- delboy::make_treat_factor(data.m, group_1, group_2)
     dds <- DESeq2::DESeqDataSetFromMatrix(data.m, DataFrame(tr), ~tr)
