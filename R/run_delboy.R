@@ -59,10 +59,10 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
 
   ### 4. Filter low count data prior to batch correction.
   tryCatch(data <- data[rowSums(data[,c(group_1, group_2)]) > filter_cutoff,],
-           error = function(e) stop(paste("unable to filter data:",e))
+           error = function(e) stop(paste("unable to filter low-count data:",e))
   )
   if(nrow(data) < 200)
-    stop(paste("only",nrow(data),"rows remain after filtering: consider using a less stringent 'filter_cutoff' value"))
+    stop(paste("only",nrow(data),"rows remain after filtering: consider using a less stringent 'filter_cutoff' value - used",filter_cutoff))
 
   ### 5. Batch correction.
   if(!is.null(batches)){
@@ -80,7 +80,12 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
 
   ### 7. Estimate parameters for validation.
   ## 7A. Number of non-null cases.
+  non.null <- delboy::estimate_number_non_nulls(deseq2_res$pvalue)
 
+  ## 7B. Estimate non-null logFC distribution.
+  lfdr.lfc <- locfdr(deseq2_res$log2FoldChange)
+  non_null.dens <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],11]
+  non_null.lfc <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],1]
 
   ### . Prep data for DR analysis.
 
