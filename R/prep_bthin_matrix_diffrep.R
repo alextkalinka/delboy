@@ -10,7 +10,8 @@
 #'
 #' @return A data frame.
 #' @export
-#' @importFrom dplyr mutate select everything
+#' @importFrom dplyr mutate select everything %>%
+#' @importFrom rlang :=
 #' @importFrom magrittr %<>%
 prep_bthin_matrix_diffrep <- function(data, bthin_matrix, sample_names, treat_cols, gene_column){
   tryCatch({
@@ -19,11 +20,11 @@ prep_bthin_matrix_diffrep <- function(data, bthin_matrix, sample_names, treat_co
     colnames(bthin_matrix) <- sample_names
     bthin_matrix %<>%
       as.data.frame %>%
-      dplyr::mutate(!!sym(gene_column) = data[,gene_column]) %>%
+      dplyr::mutate(!!sym(gene_column) := data[,gene_column]) %>%
       dplyr::select(!!sym(gene_column), dplyr::everything())
     bthin_matrix <- bthin_matrix[!is.na(bthin_matrix[,1]),]
   },
   error = function(e) stop(paste("unable to prep bthin matrix for DiffRep analyses:",e)),
   )
-
+  return(bthin_matrix)
 }

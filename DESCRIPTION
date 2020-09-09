@@ -12,4 +12,6 @@ Imports:
     dplyr,
     seqgendiff,
     locfdr,
-    glmnet
+    glmnet,
+    rlang,
+    tidyr

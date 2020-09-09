@@ -15,9 +15,8 @@
 #' @param grna_column A character string naming the column containing sgRNA IDs. Defaults to `sgRNA`. Ignored if `crispr` set to `FALSE`.
 #'
 #' @return An object of class `delboy`.
-#' @importFrom dplyr select filter
-#' @importFrom magrittr %<>%
 #' @export
+#' @importFrom dplyr left_join
 #' @references
 #' Kalinka, A. T. 2020.
 #' Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.

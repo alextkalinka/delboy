@@ -10,7 +10,8 @@
 #'
 #' @return A data frame of batch-corrected data (can contain negative values).
 #' @importFrom sva ComBat
-#' @importFrom dplyr mutate select everything sym :=
+#' @importFrom dplyr mutate select everything sym
+#' @importFrom rlang :=
 #' @export
 batch_correct <- function(data, group_1, group_2, gene_column, method = "np"){
   tryCatch({

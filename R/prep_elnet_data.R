@@ -7,7 +7,7 @@
 #'
 #' @return A data frame.
 #' @export
-#' @importFrom dplyr rowwise mutate ungroup sym
+#' @importFrom dplyr rowwise mutate ungroup sym %>%
 #' @importFrom tidyr pivot_longer pivot_wider
 prep_elnet_data <- function(data, gene_column){
   tryCatch({
