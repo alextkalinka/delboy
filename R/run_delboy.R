@@ -10,6 +10,7 @@
 #' @param gene_column A character string naming the column containing gene names.
 #' @param batches A character vector identifying the batch structure of the experiment. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches. Defaults to `NULL`.
 #' @param batch_corr_method A character string naming the batch correction method. Can be one of `combat_np` (non-parametric) or `combat_p` (parametric). Defaults to `combat_np`. Ignored if `batches` is `NULL`.
+#' @param bcorr_data_validation `NULL` if no batch corrected data is already available (and a batch correction of the true signal is required for validation). Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available).
 #' @param crispr Logical - is the data from a CRISPR pooled screen. Defaults to `FALSE`.
 #' @param grna_column A character string naming the column containing sgRNA IDs. Defaults to `sgRNA`. Ignored if `crispr` set to `FALSE`.
 #'
@@ -22,6 +23,7 @@
 #' Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
 run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_column,
                        batches = NULL, batch_corr_method = "combat_np",
+                       bcorr_data_validation = FALSE,
                        crispr = FALSE, grna_column = "sgRNA"){
   ### 1. Read data.
   if(is.character(data)){
@@ -40,6 +42,11 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
     stop(paste("unable to find the following group 2 columns:",setdiff(group_2,colnames(data))))
   if(!gene_column %in% colnames(data))
     stop(paste("unable to find the gene column",gene_column))
+  if(!is.null(bcorr_data_validation)){
+    if(!is.data.frame(bcorr_data_validation))
+      stop(paste("'bcorr_data_validation' should be a data frame, instead got",
+                 class(bcorr_data_validation)))
+  }
   if(crispr){
     if(!grna_column %in% colnames(data))
       stop(paste("unable to find the gRNA column",grna_column))
@@ -69,8 +76,10 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
 
   }
 
-  ### 6. Run DESeq2 on the original dataset.
+  ### 6. Estimate parameters for performance evaluation.
+  ## 6A. Run DESeq2 on the original dataset.
   if(crispr){
+    # Needed to optimise alpha.
     deseq2_res <- delboy::run_deseq2(data, group_1, group_2, grna_column) %>%
       dplyr::left_join(data, by = c(id = grna_column))
   }else{
@@ -78,14 +87,27 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
       dplyr::left_join(data, by = c(id = gene_column))
   }
 
-  ### 7. Estimate parameters for validation.
-  ## 7A. Number of non-null cases.
+  ## 6B. Number of non-null cases.
   non.null <- delboy::estimate_number_non_nulls(deseq2_res$pvalue)
 
-  ## 7B. Estimate non-null logFC distribution.
+  ## 6C. Estimate non-null logFC distribution.
   lfdr.lfc <- locfdr::locfdr(deseq2_res$log2FoldChange)
   non_null.dens <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],11]
   non_null.lfc <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],1]
+
+  ### 8. Estimate delboy performance relative to DESeq2.
+  ## 8A. Batch-correct real signal to create true-negative dataset.
+  if(!crispr){
+    if(is.null(bcorr_data_validation)){
+      data.bc <- delboy::batch_correct(data, group_1, group_2, gene_column)
+    }else{
+      data.bc <- bcorr_data_validation
+    }
+
+    ## 8B. Performance evaluation.
+
+  }
+
 
   ### . Prep data for DR analysis.
 
