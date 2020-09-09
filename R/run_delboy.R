@@ -73,7 +73,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
 
   ### 5. Batch correction.
   if(!is.null(batches)){
-
+    data <- delboy::batch_correct(data, group_1, group_2, gene_column)
   }
 
   ### 6. Estimate parameters for performance evaluation.
@@ -91,9 +91,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   non.null <- delboy::estimate_number_non_nulls(deseq2_res$pvalue)
 
   ## 6C. Estimate non-null logFC distribution.
-  lfdr.lfc <- locfdr::locfdr(deseq2_res$log2FoldChange)
-  non_null.dens <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],11]
-  non_null.lfc <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],1]
+  lfdr.lfc <- delboy::estimate_nonnull_logfc_distr(deseq2_res$log2FoldChange)
 
   ### 8. Estimate delboy performance relative to DESeq2.
   ## 8A. Batch-correct real signal to create true-negative dataset.
@@ -105,13 +103,26 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
     }
 
     ## 8B. Performance evaluation.
-
+    perf_eval <- delboy::evaluate_performance_rnaseq_calls(data.bc, group_1, group_2, gene_column,
+                                                           non.null$num.non_null,
+                                                           lfdr.lfc$non_null.lfc,
+                                                           lfdr.lfc$non_null.dens)
   }
 
+  ### 9. Prep data for Elastic-net analysis.
+  data.elnet <- delboy::prep_elnet_data(data, gene_column)
 
-  ### . Prep data for DR analysis.
-
-
-  ### . Elastic-net logistic regression to identify differentially-represented genes or gRNAs.
-
+  ### 10. Elastic-net logistic regression to identify differentially-represented genes or gRNAs.
+  elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
+                                             factor(data.elnet$treat),
+                                             alpha = 0.5)
+  ### 11. Build object of class 'delboy'.
+  ret <- list(non_null = list(nonnull_number = non.null,
+                              nonnull_lfc = lfdr.lfc),
+              performance_eval = perf_eval,
+              data_elnet = data.elnet,
+              elnet_results = elnet.lr,
+              deseq2_results = deseq2_res)
+  class(ret) <- "delboy"
+  return(ret)
 }

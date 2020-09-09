@@ -52,9 +52,21 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
     data.elnet <- delboy::prep_elnet_data(data.bthin, gene_column)
 
     # 10. Run Elastic-net logistic regression on bthin data.
+    elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
+                                               factor(data.elnet$treat),
+                                               alpha = 0.5)
 
+    # 11. Extract performance statistics.
+    perf_stats <- delboy::perf_stats_rnaseq(elnet.lr, deseq2_res, lfc_samp)
+
+    # 12. Build return object of class 'delboy_performance'.
+    ret <- list(data.bthin = data.bthin,
+                elnet_lr_res = elnet.lr,
+                deseq2_res = deseq2_res,
+                performance_stats = perf_stats)
+    class(ret) <- "delboy_performance"
   },
   error = function(e) stop(paste("unable to evaluate performance of delboy:",e))
   )
-
+  return(ret)
 }

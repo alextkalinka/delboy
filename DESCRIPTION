@@ -11,4 +11,5 @@ RoxygenNote: 7.1.0
 Imports: 
     dplyr,
     seqgendiff,
-    locfdr
+    locfdr,
+    glmnet

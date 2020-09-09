@@ -38,7 +38,7 @@ estimate_number_non_nulls <- function(pvals){
   tryCatch({
     withCallingHandlers({
       qn <- qnorm(.smooth_pvals(pvals))
-      lfdr <- locfdr::locfdr(qn)
+      lfdr <- locfdr::locfdr(qn, plot = 0)
     },
     warning = function(w) misfit <<- gsub("^.*?misfit = (\\d+?).*$","\\1",w)
     )
