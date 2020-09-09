@@ -43,9 +43,15 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
                                                     c(design_mat),
                                                     gene_column)
 
-    # 8. Run DESeq2 on bthin data with known true positives and true negatives.
-    data.bthin.m <- delboy::prep_count_matrix(data.bthin, group_1, group_2, gene_column)
+    # 8. Run DESeq2 on bthin data.
+    group_1.v <- colnames(data.m)[!c(design_mat)]
+    group_2.v <- colnames(data.m)[c(design_mat)]
+    deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column)
 
+    # 9. Prep data for Elastic-net logistic regression.
+    data.elnet <- delboy::prep_elnet_data(data.bthin, gene_column)
+
+    # 10. Run Elastic-net logistic regression on bthin data.
 
   },
   error = function(e) stop(paste("unable to evaluate performance of delboy:",e))
