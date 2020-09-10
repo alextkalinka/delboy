@@ -24,6 +24,9 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
                        batches = NULL, batch_corr_method = "combat_np",
                        bcorr_data_validation = FALSE,
                        crispr = FALSE, grna_column = "sgRNA"){
+  # Random samples taken.
+  set.seed(1)
+
   ### 1. Read data.
   if(is.character(data)){
     tryCatch(

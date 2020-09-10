@@ -64,7 +64,8 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
     perf_stats <- delboy::perf_stats_rnaseq(elnet.lr, deseq2_res, lfc_samp)
 
     # 12. Build return object of class 'delboy_performance'.
-    ret <- list(data.bthin = data.bthin,
+    ret <- list(lfc_samp = lfc_samp,
+                data.bthin = data.bthin,
                 elnet_lr_res = elnet.lr,
                 deseq2_res = deseq2_res,
                 performance_stats = perf_stats)

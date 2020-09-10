@@ -4,11 +4,15 @@
   true_up <- true_up[true_up > 0]
   true_down <- lfc[names(lfc) %in% down]
   true_down <- true_down[true_down < 0]
-  sens <- 100*(length(true_up) + length(true_down))/length(lfc)
-  prec <- 100*(length(true_up) + length(true_down))/(length(up) + length(down))
+  num_true_calls <- length(true_up) + length(true_down)
+  total_calls <- length(up) + length(down)
+  sens <- 100*(num_true_calls)/length(lfc)
+  prec <- 100*(num_true_calls)/(total_calls)
   fdr <- 100-prec
-  return(data.frame(Algorithm = algorithm, Sensitivity.percent = sens, Precision.percent = prec,
-                    FDR.percent = fdr))
+  return(data.frame(Algorithm = algorithm, Num_true_calls = num_true_calls,
+                    Sensitivity.percent = sens,
+                    Num_false_calls = total_calls - num_true_calls,
+                    Precision.percent = prec, FDR.percent = fdr))
 }
 
 
