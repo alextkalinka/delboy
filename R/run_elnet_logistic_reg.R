@@ -25,7 +25,7 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
     genes.elnet <- coef(fit.elnet, s = fit.cv_dev$lambda.min)
 
     # Over-expressed in T treatment.
-    genes.up <- genes.lasso[genes.lasso[,1] > 0,]
+    genes.up <- genes.elnet[genes.elnet[,1] > 0,]
     genes.up <- names(genes.up)[2:length(genes.up)]
 
     # Down-regulated in T treatment.

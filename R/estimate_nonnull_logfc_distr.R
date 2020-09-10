@@ -13,7 +13,7 @@ estimate_nonnull_logfc_distr <- function(logfc){
     withCallingHandlers({
       lfdr.lfc <- locfdr::locfdr(logfc, plot = 0)
     },
-    warning = function(w) misfit <<- gsub("^.*?misfit = (\\d+?).*$","\\1",w)
+    warning = function(w) misfit <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
     )
     non_null.dens <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],11]
     non_null.lfc <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],1]

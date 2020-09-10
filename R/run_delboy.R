@@ -109,7 +109,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   }
 
   ### 9. Prep data for Elastic-net analysis.
-  data.elnet <- delboy::prep_elnet_data(data, gene_column)
+  data.elnet <- delboy::prep_elnet_data(data, group_1, group_2, gene_column)
 
   ### 10. Elastic-net logistic regression to identify differentially-represented genes or gRNAs.
   elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),

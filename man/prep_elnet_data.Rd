@@ -4,10 +4,14 @@
 \alias{prep_elnet_data}
 \title{prep_elnet_data}
 \usage{
-prep_elnet_data(data, gene_column)
+prep_elnet_data(data, group_1, group_2, gene_column)
 }
 \arguments{
 \item{data}{A data frame produced by \code{delboy::prep_bthin_matrix_diffrep}.}
+
+\item{group_1}{A character vector naming the columns that belong to group 1.}
+
+\item{group_2}{A character vector naming the columns that belong to group 2.}
 
 \item{gene_column}{A character string naming the column containing gene names.}
 }

@@ -13,6 +13,8 @@
 #' @return An object of class `delboy_performance`.
 #' @export
 #' @importFrom seqgendiff thin_diff
+#' @importFrom dplyr select
+#' @importFrom rlang sym
 evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_column,
                                               num_non_null, lfc, lfc_dens){
   tryCatch({
@@ -44,12 +46,14 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
                                                     gene_column)
 
     # 8. Run DESeq2 on bthin data.
-    group_1.v <- colnames(data.m)[!as.logical(c(design_mat))]
-    group_2.v <- colnames(data.m)[as.logical(c(design_mat))]
+    group_1.v <- colnames(data.bthin %>%
+                            dplyr::select(- !!rlang::sym(gene_column)))[!as.logical(c(design_mat))]
+    group_2.v <- colnames(data.bthin %>%
+                            dplyr::select(- !!rlang::sym(gene_column)))[as.logical(c(design_mat))]
     deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column)
 
     # 9. Prep data for Elastic-net logistic regression.
-    data.elnet <- delboy::prep_elnet_data(data.bthin, gene_column)
+    data.elnet <- delboy::prep_elnet_data(data.bthin, group_1.v, group_2.v, gene_column)
 
     # 10. Run Elastic-net logistic regression on bthin data.
     elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
