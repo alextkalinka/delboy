@@ -24,7 +24,7 @@
 #' @return A data frame of sensitivity and precision estimates.
 #' @export
 #' @importFrom magrittr %<>%
-#' @importFrom dplyr filter
+#' @importFrom dplyr filter %>%
 perf_stats_rnaseq <- function(delboy_res, deseq2_res, lfc_samp, padj_cutoff = 0.1){
   tryCatch({
     # delboy stats.
@@ -33,9 +33,9 @@ perf_stats_rnaseq <- function(delboy_res, deseq2_res, lfc_samp, padj_cutoff = 0.
     # deseq2 stats.
     deseq2_res %<>%
       dplyr::filter(padj < padj_cutoff)
-    deseq2_up <- deseq2_res %<>%
+    deseq2_up <- deseq2_res %>%
       filter(log2FoldChange > 0)
-    deseq2_down <- deseq2_res %<>%
+    deseq2_down <- deseq2_res %>%
       filter(log2FoldChange < 0)
 
     deseq2_stats <- .collate_stats(lfc_samp, deseq2_up$id, deseq2_down$id, "DESeq2")
