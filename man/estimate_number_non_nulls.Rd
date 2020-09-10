@@ -10,7 +10,7 @@ estimate_number_non_nulls(pvals)
 \item{pvals}{A numeric vector of raw (unadjusted) p-values.}
 }
 \value{
-A list containing an integer giving an estimate of the number of non-null cases, and an estimate of the misfit of the mixture model.
+A list containing an integer giving an estimate of the number of non-null cases, and an estimate of the misfit of the \code{locfdr} mixture model.
 }
 \description{
 Estimates the number of non-null cases in a dataset using \code{locfdr} with raw p-values as inputs.

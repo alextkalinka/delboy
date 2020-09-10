@@ -1,17 +1,17 @@
 # Smooth p-values > 0.5 from DESeq2 to enable 'locfdr' estimate of non-null abundance.
 # DESeq2 sometimes produces an excess of p-values > 0.9 and this can hamper the Gaussian mixture models used by locfdr.
 .smooth_pvals <- function(pval, start=0.5){
-  pick <- between(pval,start,1)
+  pick <- dplyr::between(pval,start,1)
   tot <- sum(pick)
   pv <- data.frame(pvalue = pval[pick]) %>%
-    mutate(pv_cuts = cut(pvalue, breaks=28)) %>%
-    group_by(pv_cuts) %>%
-    mutate(midp = median(pvalue,na.rm=T)) %>%
-    ungroup %>%
-    mutate(prob = midp/sum(unique(midp))) %>%
-    group_by(pv_cuts) %>%
-    sample_n(round(tot * unique(prob)), replace=T) %>%
-    ungroup
+    dplyr::mutate(pv_cuts = cut(pvalue, breaks=28)) %>%
+    dplyr::group_by(pv_cuts) %>%
+    dplyr::mutate(midp = median(pvalue,na.rm=T)) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(prob = midp/sum(unique(midp))) %>%
+    dplyr::group_by(pv_cuts) %>%
+    dplyr::sample_n(round(tot * unique(prob)), replace=T) %>%
+    dplyr::ungroup()
 
   ret <- c(pval[!pick], pv$pvalue)
   diff <- length(pval) - length(ret)
@@ -30,8 +30,9 @@
 #'
 #' @param pvals A numeric vector of raw (unadjusted) p-values.
 #'
-#' @return A list containing an integer giving an estimate of the number of non-null cases, and an estimate of the misfit of the mixture model.
+#' @return A list containing an integer giving an estimate of the number of non-null cases, and an estimate of the misfit of the `locfdr` mixture model.
 #' @importFrom locfdr locfdr
+#' @importFrom dplyr between group_by ungroup mutate sample_n %>%
 #' @export
 estimate_number_non_nulls <- function(pvals){
   misfit <- FALSE

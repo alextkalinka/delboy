@@ -11,7 +11,7 @@
 #' @export
 prep_count_matrix <- function(data, group_1, group_2, gene_column){
   tryCatch({
-    as.matrix(data[,c(group_1, group_2)])
+    data.m <- as.matrix(data[,c(group_1, group_2)])
     rownames(data.m) <- data[,gene_column]
     data.m <- apply(data.m, 2, round)
     data.m <- apply(data.m, 2, function(x) ifelse(x < 0, 0, x))
