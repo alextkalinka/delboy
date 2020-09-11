@@ -24,11 +24,11 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
     # Extract non-zero coefficients at point where fit is best (lambda min).
     genes.elnet <- coef(fit.elnet, s = fit.cv_dev$lambda.min)
 
-    # Over-expressed in T treatment.
+    # Over-represented in group 2.
     genes.up <- genes.elnet[genes.elnet[,1] > 0,]
     genes.up <- names(genes.up)[2:length(genes.up)]
 
-    # Down-regulated in T treatment.
+    # Under-represented in group 2.
     genes.down <- genes.elnet[genes.elnet[,1] < 0,]
     genes.down <- names(genes.down)[2:length(genes.down)]
 
