@@ -118,13 +118,19 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
                                              factor(data.elnet$treat),
                                              alpha = 0.5)
-  ### 11. Build object of class 'delboy'.
+
+  ### 11. Combine hits with validation hit table to aid analysis of false positives.
+  hits_orig_val <- delboy::combine_validation_original_hits(elnet.lr, deseq2_res,
+                                                            perf_eval$delboy_hit_table)
+
+  ### 12. Build object of class 'delboy'.
   ret <- list(non_null = list(nonnull_number = non.null,
                               nonnull_lfc = lfdr.lfc),
               performance_eval = perf_eval,
               data_elnet = data.elnet,
               elnet_results = elnet.lr,
-              deseq2_results = deseq2_res)
+              deseq2_results = deseq2_res,
+              hits_original_validation = hits_orig_val)
   class(ret) <- "delboy"
   return(ret)
 }

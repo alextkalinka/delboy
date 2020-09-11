@@ -17,5 +17,5 @@ make_delboy_hit_comparison_table(elnet_lr_res, deseq2_res, lfc_samp)
 A data frame.
 }
 \description{
-Make a TP, FN, FP data frame to aid analysis of \code{delboy} hits.
+Make a TP, FN, FP data frame to aid analysis of \code{delboy} validation hits produced by \code{delboy::evaluate_performance_rnaseq_calls}.
 }

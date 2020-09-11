@@ -1,6 +1,6 @@
 #' make_delboy_hit_comparison_table
 #'
-#' Make a TP, FN, FP data frame to aid analysis of `delboy` hits.
+#' Make a TP, FN, FP data frame to aid analysis of `delboy` validation hits produced by `delboy::evaluate_performance_rnaseq_calls`.
 #'
 #' @param elnet_lr_res An object of class `delboy_elnet`, the output from running `delboy::run_elnet_logistic_reg`.
 #' @param deseq2_res The output from `delboy::run_deseq2`.
