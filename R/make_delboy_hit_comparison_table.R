@@ -18,7 +18,9 @@ make_delboy_hit_comparison_table <- function(elnet_lr_res, deseq2_res, lfc_samp)
     FP <- elnet_hits[!elnet_hits %in% names(lfc_samp)]
     ret <- deseq2_res %>%
       dplyr::filter(id %in% all_hits) %>%
-      dplyr::mutate(hit_type = dplyr::case_when(id %in% TP ~ "True_Positive",
+      dplyr::mutate(log10_baseExpr = log10(baseMean),
+                    abs_log2FoldChange = abs(log2FoldChange),
+                    hit_type = dplyr::case_when(id %in% TP ~ "True_Positive",
                                                 id %in% FN ~ "False_Negative",
                                                 id %in% FP ~ "False_Positive"),
                     hit_type = factor(hit_type,levels=c("True_Positive","False_Negative",

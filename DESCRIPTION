@@ -12,6 +12,7 @@ Description: Improves sensitivity for under-powered
 License: MIT + file LICENSE
 Imports: 
     dplyr,
+    e1071,
     glmnet,
     locfdr,
     rlang,

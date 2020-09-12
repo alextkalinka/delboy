@@ -14,10 +14,14 @@ combine_validation_original_hits <- function(elnet_lr_res, deseq2_res, delboy_va
     elnet_hits <- c(elnet_lr_res$genes.up, elnet_lr_res$genes.down)
     ret <- deseq2_res %>%
       dplyr::filter(id %in% elnet_hits) %>%
-      dplyr::mutate(hit_type = "Positive", data_type = "original") %>%
-      dplyr::select(id,baseMean,log2FoldChange,lfcSE,stat,pvalue,padj,hit_type) %>%
+      dplyr::mutate(log10_baseExpr = log10(baseMean),
+                    abs_log2FoldChange = abs(log2FoldChange),
+                    hit_type = "Positive",
+                    data_type = "Original") %>%
+      dplyr::select(id,baseMean,log2FoldChange,lfcSE,stat,pvalue,padj,
+                    log10_baseExpr,abs_log2FoldChange,hit_type,data_type) %>%
       rbind(delboy_validation_hits %>%
-              dplyr::mutate(data_type = "validation"))
+              dplyr::mutate(data_type = "Validation"))
   },
   error = function(e) stop(paste("unable to combine validation and original hits:",e))
   )

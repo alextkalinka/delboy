@@ -16,7 +16,7 @@
 #'
 #' @return An object of class `delboy`.
 #' @export
-#' @importFrom dplyr left_join
+#' @importFrom dplyr left_join filter select arrange
 #' @references
 #' Kalinka, A. T. 2020.
 #' Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
@@ -123,14 +123,25 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   hits_orig_val <- delboy::combine_validation_original_hits(elnet.lr, deseq2_res,
                                                             perf_eval$delboy_hit_table)
 
-  ### 12. Build object of class 'delboy'.
+  ### 12. Create final Elnet hit table.
+  elnet_hits <- delboy::assemble_elnet_hits(hits_orig_val, deseq2_res,
+                                            perf_eval$svm_validation$svm_validation_fit)
+
+  ### 13. Update performance stats after excluding predicted False Positives.
+  pstats_excl_pred_fp <- delboy::exclude_predicted_FP_perf(perf_eval$svm_validation$data_svm,
+                                                           perf_eval$performance_stats,
+                                                           non.null$nonnull_number$num.non_null)
+
+  ### 14. Build object of class 'delboy'.
   ret <- list(non_null = list(nonnull_number = non.null,
                               nonnull_lfc = lfdr.lfc),
               performance_eval = perf_eval,
               data_elnet = data.elnet,
+              elnet_hits = elnet_hits,
               elnet_results = elnet.lr,
               deseq2_results = deseq2_res,
-              hits_original_validation = hits_orig_val)
+              hits_original_validation = hits_orig_val,
+              performance_stats_corr_FP = pstats_excl_pred_fp)
   class(ret) <- "delboy"
   return(ret)
 }
