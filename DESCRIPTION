@@ -13,6 +13,7 @@ License: MIT + file LICENSE
 Imports: 
     dplyr,
     e1071,
+    ggplot2,
     glmnet,
     locfdr,
     rlang,

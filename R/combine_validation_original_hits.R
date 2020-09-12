@@ -21,7 +21,8 @@ combine_validation_original_hits <- function(elnet_lr_res, deseq2_res, delboy_va
       dplyr::select(id,baseMean,log2FoldChange,lfcSE,stat,pvalue,padj,
                     log10_baseExpr,abs_log2FoldChange,hit_type,data_type) %>%
       rbind(delboy_validation_hits %>%
-              dplyr::mutate(data_type = "Validation"))
+              dplyr::mutate(data_type = "Validation")) %>%
+      dplyr::mutate(data_type = factor(data_type, levels=c("Validation","Original")))
   },
   error = function(e) stop(paste("unable to combine validation and original hits:",e))
   )
