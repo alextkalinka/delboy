@@ -21,7 +21,7 @@ exclude_predicted_FP_perf <- function(data_svm, perf_stats, num_pos){
                     Num_false_calls = ifelse(Algorithm=="delboy",
                                              Num_false_calls - updates[2],
                                              Num_false_calls),
-                    Precision.percent = 100*(Num_true_calls-Num_false_calls)/(Num_true_calls+Num_false_calls),
+                    Precision.percent = 100*Num_true_calls/(Num_true_calls+Num_false_calls),
                     FDR.percent = 100-Precision.percent)
   },
   error = function(e) stop(paste("unable to exclude predicted False Positives:",e))

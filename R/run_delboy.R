@@ -130,7 +130,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   ### 13. Update performance stats after excluding predicted False Positives.
   pstats_excl_pred_fp <- delboy::exclude_predicted_FP_perf(perf_eval$svm_validation$data_svm,
                                                            perf_eval$performance_stats,
-                                                           non.null$nonnull_number$num.non_null)
+                                                           non.null$num.non_null)
 
   ### 14. Build object of class 'delboy'.
   ret <- list(non_null = list(nonnull_number = non.null,
