@@ -18,6 +18,7 @@ Imports:
     locfdr,
     rlang,
     seqgendiff,
+    sva,
     tidyr
 Encoding: UTF-8
 LazyData: true
