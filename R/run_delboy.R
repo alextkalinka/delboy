@@ -38,6 +38,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   }
 
   ### 2A. Sanity checks.
+  cat("Checking data...\n")
   if(any(!group_1 %in% colnames(data)))
     stop(paste("unable to find the following group 1 columns:",setdiff(group_1,colnames(data))))
   if(any(!group_2 %in% colnames(data)))
@@ -67,6 +68,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   }
 
   ### 4. Filter low count data prior to batch correction.
+  cat("Filtering low-count cases...\n")
   tryCatch(data <- data[rowSums(data[,c(group_1, group_2)]) > filter_cutoff,],
            error = function(e) stop(paste("unable to filter low-count data:",e))
   )
@@ -75,6 +77,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
 
   ### 5. Batch correction.
   if(!is.null(batches)){
+    cat("Batch correcting data...\n")
     data <- delboy::batch_correct(data, group_1, group_2, gene_column)
   }
 
@@ -90,21 +93,26 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   }
 
   ## 6B. Number of non-null cases.
+  cat("Estimating the number of non-null cases...")
   non.null <- delboy::estimate_number_non_nulls(deseq2_res$pvalue)
+  cat(non.null$num.non_null,"\n")
 
   ## 6C. Estimate non-null logFC distribution.
+  cat("Estimating non-null logFC distribution...\n")
   lfdr.lfc <- delboy::estimate_nonnull_logfc_distr(deseq2_res$log2FoldChange)
 
   ### 8. Estimate delboy performance relative to DESeq2.
   ## 8A. Batch-correct real signal to create true-negative dataset.
   if(!crispr){
     if(is.null(bcorr_data_validation)){
+      cat("Batch correction to create signal-corrected data for validation...\n")
       data.bc <- delboy::batch_correct(data, group_1, group_2, gene_column)
     }else{
       data.bc <- bcorr_data_validation
     }
 
     ## 8B. Performance evaluation.
+    cat("Performance evaluation to validate results...\n")
     perf_eval <- delboy::evaluate_performance_rnaseq_calls(data.bc, group_1, group_2, gene_column,
                                                            non.null$num.non_null,
                                                            lfdr.lfc$non_null.lfc,
@@ -112,6 +120,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   }
 
   ### 9. Prep data for Elastic-net analysis.
+  cat("Elastic-net logistic regression for hit detection...\n")
   data.elnet <- delboy::prep_elnet_data(data, group_1, group_2, gene_column)
 
   ### 10. Elastic-net logistic regression to identify differentially-represented genes or gRNAs.
@@ -120,6 +129,7 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
                                              alpha = 0.5)
 
   ### 11. Combine hits with validation hit table to aid analysis of false positives.
+  cat("Finishing up...\n")
   hits_orig_val <- delboy::combine_validation_original_hits(elnet.lr, deseq2_res,
                                                             perf_eval$delboy_hit_table)
 

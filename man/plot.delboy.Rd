@@ -9,7 +9,7 @@
 \arguments{
 \item{delboy_res}{Output from \code{delboy::run_delboy}.}
 
-\item{type}{A character string naming the plot type: \code{fc_expr}.}
+\item{type}{A character string naming the plot type: \code{fc_expr}, \code{fc_expr_FN}, \code{deviance}, \code{misclass}, \code{lfc_nonnull}.}
 
 \item{...}{Other arguments to be passed to \code{plot}.}
 }

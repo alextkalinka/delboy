@@ -17,8 +17,8 @@ run_deseq2 <- function(data, group_1, group_2, gene_column){
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
     # Run DESeq2.
     tr <- delboy::make_treat_factor(data.m, group_1, group_2)
-    dds <- DESeq2::DESeqDataSetFromMatrix(data.m, as.data.frame(tr), ~tr)
-    dds <- DESeq2::DESeq(dds)
+    suppressMessages(dds <- DESeq2::DESeqDataSetFromMatrix(data.m, as.data.frame(tr), ~tr))
+    suppressMessages(dds <- DESeq2::DESeq(dds))
     res <- as.data.frame(DESeq2::results(dds)) %>%
       dplyr::arrange(padj) %>%
       dplyr::mutate(id = rownames(.)) %>%
