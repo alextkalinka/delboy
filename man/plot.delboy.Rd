@@ -4,12 +4,16 @@
 \alias{plot.delboy}
 \title{plot.delboy}
 \usage{
-\method{plot}{delboy}(delboy_res, type, ...)
+\method{plot}{delboy}(delboy_res, type, xlim = NULL, ylim = NULL, ...)
 }
 \arguments{
 \item{delboy_res}{Output from \code{delboy::run_delboy}.}
 
 \item{type}{A character string naming the plot type: \code{fc_expr}, \code{fc_expr_FN}, \code{deviance}, \code{misclass}, \code{lfc_nonnull}.}
+
+\item{xlim}{xlim values for x-axis. Defaults to \code{NULL}.}
+
+\item{ylim}{xlim values for y-axis. Defaults to \code{NULL}.}
 
 \item{...}{Other arguments to be passed to \code{plot}.}
 }

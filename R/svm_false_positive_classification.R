@@ -20,8 +20,8 @@ svm_false_positive_classification <- function(data, kernel){
     pred_fp <- predict(svm_val, data_svm)
     data_svm %<>%
       dplyr::mutate(Predicted_FP = pred_fp)
-    data.grid <- expand.grid(log10_baseExpr = seq(from=0,to=4,length=400),
-                             abs_log2FoldChange = seq(from=0,to=2,length=400)) %>%
+    data.grid <- expand.grid(log10_baseExpr = seq(from=0,to=5,length=400),
+                             abs_log2FoldChange = seq(from=0,to=4,length=400)) %>%
       dplyr::mutate(Predicted_FP = as.numeric(predict(svm_val, .)))
   },
   error = function(e) stop(paste("unable to perform SVM on validation data:",e))

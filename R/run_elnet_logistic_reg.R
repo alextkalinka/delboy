@@ -11,18 +11,28 @@
 #' @importFrom glmnet glmnet cv.glmnet
 run_elnet_logistic_reg <- function(data, treat, alpha){
   tryCatch({
+    max.num_reps <- sort(table(treat),decreasing = T)[1]
     warn <- NULL
     withCallingHandlers({
       fit.elnet <- glmnet::glmnet(data, factor(treat), family = "binomial", alpha = alpha)
-      fit.cv_dev <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
-                                  type.measure = "deviance")
-      fit.cv_class <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
-                                      type.measure = "class")
+      if(max.num_reps > 3){
+        fit.cv_dev <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
+                                    type.measure = "deviance")
+        fit.cv_class <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
+                                        type.measure = "class")
+      }else{
+        fit.cv_dev <- NA
+        fit.cv_class <- NA
+      }
     },
     warning = function(w) warn <<- append(warn,w)
     )
     # Extract non-zero coefficients at point where fit is best (lambda min).
-    genes.elnet <- coef(fit.elnet, s = fit.cv_dev$lambda.min)
+    if(max.num_reps > 3){
+      genes.elnet <- coef(fit.elnet, s = fit.cv_dev$lambda.min)
+    }else{
+      genes.elnet <- coef(fit.elnet, s = tail(fit.elnet$lambda,1))
+    }
 
     # Over-represented in group 2.
     genes.up <- genes.elnet[genes.elnet[,1] > 0,]

@@ -1,5 +1,19 @@
 # Helper functions.
-.plotFCExpr <- function(delboy){
+.plotFCExpr <- function(delboy, xlim, ylim){
+  if(is.null(xlim)){
+    xlim_l <- 0.5
+    xlim_u <- 4
+  }else{
+    xlim_l <- xlim[1]
+    xlim_u <- xlim[2]
+  }
+  if(is.null(ylim)){
+    ylim_l <- 0.5
+    ylim_u <- 4
+  }else{
+    ylim_l <- ylim[1]
+    ylim_u <- ylim[2]
+  }
   grid <- delboy$performance_eval$svm_validation$grid
   pl <- delboy$hits_original_validation %>%
     ggplot2::ggplot() +
@@ -9,13 +23,27 @@
     ggplot2::geom_contour(data = grid,
                           ggplot2::aes(log10_baseExpr, abs_log2FoldChange, z=Predicted_FP)) +
     ggplot2::facet_grid(~data_type) +
-    ggplot2::xlim(0.5,4) +
-    ggplot2::ylim(0,1.5)
+    ggplot2::xlim(xlim_l, xlim_u) +
+    ggplot2::ylim(ylim_l, ylim_u)
   print(pl)
 }
 
 
-.plotFCExprFN <- function(delboy){
+.plotFCExprFN <- function(delboy, xlim, ylim){
+  if(is.null(xlim)){
+    xlim_l <- 0.5
+    xlim_u <- 4
+  }else{
+    xlim_l <- xlim[1]
+    xlim_u <- xlim[2]
+  }
+  if(is.null(ylim)){
+    ylim_l <- 0.5
+    ylim_u <- 4
+  }else{
+    ylim_l <- ylim[1]
+    ylim_u <- ylim[2]
+  }
   data <- delboy$hits_original_validation %>%
     dplyr::filter(hit_type != "Positive")
   grid <- delboy$performance_eval$svm_validation$grid
@@ -25,19 +53,27 @@
                         ggplot2::aes(log10_baseExpr, abs_log2FoldChange, color=hit_type)) +
     ggplot2::geom_contour(data = grid,
                           ggplot2::aes(log10_baseExpr, abs_log2FoldChange, z=Predicted_FP)) +
-    ggplot2::xlim(0.5,4) +
-    ggplot2::ylim(0,1.5)
+    ggplot2::xlim(xlim_l, xlim_u) +
+    ggplot2::ylim(ylim_l, ylim_u)
   print(pl)
 }
 
 
 .plotBinDev <- function(delboy){
-  plot(delboy$elnet_results$cvfit)
+  if(!is.na(delboy$elnet_results$cvfit)){
+    plot(delboy$elnet_results$cvfit)
+  }else{
+    cat("too few replicates to perform cross-validation")
+  }
 }
 
 
 .plotMisClass <- function(delboy){
-  plot(delboy$elnet_results$cvfit.class)
+  if(!is.na(delboy$elnet_results$cvfit.class)){
+    plot(delboy$elnet_results$cvfit.class)
+  }else{
+    cat("too few replicates to perform cross-validation")
+  }
 }
 
 
@@ -58,15 +94,17 @@
 #'
 #' @param delboy_res Output from `delboy::run_delboy`.
 #' @param type A character string naming the plot type: `fc_expr`, `fc_expr_FN`, `deviance`, `misclass`, `lfc_nonnull`.
+#' @param xlim xlim values for x-axis. Defaults to `NULL`.
+#' @param ylim xlim values for y-axis. Defaults to `NULL`.
 #' @param ... Other arguments to be passed to `plot`.
 #'
 #' @return Used for side-effect of plotting.
 #' @export
 #' @importFrom ggplot2 ggplot aes facet_grid geom_point geom_contour geom_line geom_vline geom_hline ggtitle
-plot.delboy <- function(delboy_res, type, ...){
+plot.delboy <- function(delboy_res, type, xlim = NULL, ylim = NULL, ...){
   switch(type,
-         fc_expr = .plotFCExpr(delboy_res),
-         fc_expr_FN = .plotFCExprFN(delboy_res),
+         fc_expr = .plotFCExpr(delboy_res, xlim, ylim),
+         fc_expr_FN = .plotFCExprFN(delboy_res, xlim, ylim),
          deviance = .plotBinDev(delboy_res),
          misclass = .plotMisClass(delboy_res),
          lfc_nonnull = .plotLFCNonNull(delboy_res)
