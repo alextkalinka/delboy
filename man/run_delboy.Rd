@@ -13,7 +13,7 @@ run_delboy(
   gene_column,
   batches = NULL,
   batch_corr_method = "combat_np",
-  bcorr_data_validation = FALSE,
+  bcorr_data_validation = NULL,
   crispr = FALSE,
   grna_column = "sgRNA"
 )
@@ -35,19 +35,24 @@ run_delboy(
 
 \item{batch_corr_method}{A character string naming the batch correction method. Can be one of \code{combat_np} (non-parametric) or \code{combat_p} (parametric). Defaults to \code{combat_np}. Ignored if \code{batches} is \code{NULL}.}
 
-\item{bcorr_data_validation}{\code{NULL} if no batch corrected data is already available (and a batch correction of the true signal is required for validation). Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available).}
+\item{bcorr_data_validation}{\code{NULL} if no batch corrected data is already available. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available).}
 
 \item{crispr}{Logical - is the data from a CRISPR pooled screen. Defaults to \code{FALSE}.}
 
 \item{grna_column}{A character string naming the column containing sgRNA IDs. Defaults to \code{sgRNA}. Ignored if \code{crispr} set to \code{FALSE}.}
 }
 \value{
-An object of class \code{delboy}.
+An object of class \code{delboy}. Access this object using \code{delboy::hits}, and \code{delboy::plot.delboy}.
 }
 \description{
 Performs a differential-representation analysis using an elastic-net logistic regression approach for (normalized) count data that is split into two groups.
 }
 \references{
-Kalinka, A. T. 2020.
-Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
+\itemize{
+\item Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv.
+\item Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
+}
+}
+\seealso{
+\code{\link{hits}}, \code{\link{plot.delboy}}
 }

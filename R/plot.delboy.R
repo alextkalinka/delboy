@@ -8,8 +8,8 @@
     xlim_u <- xlim[2]
   }
   if(is.null(ylim)){
-    ylim_l <- 0.5
-    ylim_u <- 4
+    ylim_l <- 0
+    ylim_u <- 1.5
   }else{
     ylim_l <- ylim[1]
     ylim_u <- ylim[2]
@@ -38,8 +38,8 @@
     xlim_u <- xlim[2]
   }
   if(is.null(ylim)){
-    ylim_l <- 0.5
-    ylim_u <- 4
+    ylim_l <- 0
+    ylim_u <- 1.5
   }else{
     ylim_l <- ylim[1]
     ylim_u <- ylim[2]
@@ -93,9 +93,9 @@
 #' Plotting for `delboy` objects.
 #'
 #' @param delboy_res Output from `delboy::run_delboy`.
-#' @param type A character string naming the plot type: `fc_expr`, `fc_expr_FN`, `deviance`, `misclass`, `lfc_nonnull`.
-#' @param xlim xlim values for x-axis. Defaults to `NULL`.
-#' @param ylim xlim values for y-axis. Defaults to `NULL`.
+#' @param type A character string naming the plot type: `fc_expr`, `fc_expr_FN`, `lfc_nonnull` `deviance`, `misclass`.
+#' @param xlim xlim values for x-axis. Defaults to `NULL` for `c(0.5,4)`.
+#' @param ylim xlim values for y-axis. Defaults to `NULL` for `c(0,1.5)`.
 #' @param ... Other arguments to be passed to `plot`.
 #'
 #' @return Used for side-effect of plotting.
@@ -105,8 +105,8 @@ plot.delboy <- function(delboy_res, type, xlim = NULL, ylim = NULL, ...){
   switch(type,
          fc_expr = .plotFCExpr(delboy_res, xlim, ylim),
          fc_expr_FN = .plotFCExprFN(delboy_res, xlim, ylim),
+         lfc_nonnull = .plotLFCNonNull(delboy_res),
          deviance = .plotBinDev(delboy_res),
-         misclass = .plotMisClass(delboy_res),
-         lfc_nonnull = .plotLFCNonNull(delboy_res)
+         misclass = .plotMisClass(delboy_res)
          )
 }

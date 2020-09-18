@@ -9,11 +9,11 @@
 \arguments{
 \item{delboy_res}{Output from \code{delboy::run_delboy}.}
 
-\item{type}{A character string naming the plot type: \code{fc_expr}, \code{fc_expr_FN}, \code{deviance}, \code{misclass}, \code{lfc_nonnull}.}
+\item{type}{A character string naming the plot type: \code{fc_expr}, \code{fc_expr_FN}, \code{lfc_nonnull} \code{deviance}, \code{misclass}.}
 
-\item{xlim}{xlim values for x-axis. Defaults to \code{NULL}.}
+\item{xlim}{xlim values for x-axis. Defaults to \code{NULL} for \code{c(0.5,4)}.}
 
-\item{ylim}{xlim values for y-axis. Defaults to \code{NULL}.}
+\item{ylim}{xlim values for y-axis. Defaults to \code{NULL} for \code{c(0,1.5)}.}
 
 \item{...}{Other arguments to be passed to \code{plot}.}
 }

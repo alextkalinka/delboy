@@ -2,7 +2,7 @@
 
 ## Summary
 
-`delboy` is an `R` package for conducting differential-expression analyses on RNA-seq data in which there are exactly two groups to be contrasted. The method is designed to improve sensitivity for under-powered data-sets, in which the effect sizes are small and there are few replicates, while controlling the False Discovery Rate (FDR).
+`delboy` is an `R` package for conducting differential-expression analyses on RNA-seq data in which there are exactly **two groups** to be contrasted. The method is designed to improve sensitivity for under-powered data-sets, in which the effect sizes are small and there are few replicates, while controlling the False Discovery Rate (FDR).
 
 `delboy` - **D**ifferential-representation analysis by **E**lastic-net **L**ogistic regression with **B**in**O**mial-thinning validit**Y** tests.
 
@@ -39,7 +39,7 @@ my_hits <- delboy::hits(db)
 
 ```
 
-To plot validation performance next to original data showing the false-positive decision boundary (axes limits can be controlled with `xlim` and `ylim` arguments):
+To plot validation performance next to original data showing the false-positive decision boundary (axes limits can be controlled using the `xlim` and `ylim` arguments):
 
 ```r
 plot(db, type = "fc_expr")
