@@ -6,7 +6,7 @@
 
 `delboy` - **D**ifferential-representation analysis by **E**lastic-net **L**ogistic regression with **B**in**O**mial-thinning validit**Y** tests.
 
-You can read about the method in the associated [manuscript]().
+You can read about the method in the companion [manuscript]().
 
 ## Installation
 
@@ -17,14 +17,13 @@ devtools::install_github("alextkalinka/delboy")
 
 ## Usage
 
-Input data should be a count data frame (can be normalized and, hence, real values are allowed) in which there is a gene column with the remaining columns being sample columns.
+Input data should be a data frame of normalized counts in which there is a gene column with the remaining columns being sample columns.
 
 ```r
 db <- delboy::run_delboy(
 		data = expr_data_frame,
 		group_1 = c("ctrl-1","ctrl-2","ctrl-3"),
 		group_2 = c("treat-1","treat-2","treat-3"),
-		normalize = NULL,
 		filter_cutoff = 40,
 		gene_column = "gene_id",
 		batches = NULL

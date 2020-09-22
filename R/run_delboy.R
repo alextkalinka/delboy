@@ -1,6 +1,6 @@
 #' run_delboy
 #'
-#' Performs a differential-representation analysis using an elastic-net logistic regression approach for (normalized) count data that is split into two groups.
+#' Performs a differential-representation analysis using an elastic-net logistic regression approach for normalized count data that is split into two groups.
 #'
 #' @param data A data frame containing normalized count data for two different groups and their replicates. Can be a path to a file. Ideally the counts will already have been normalized to Transcripts Per Million (TPM), using, for example, the bias-aware quantification methods employed by `salmon` (Patro et al. 2017).
 #' @param group_1 A character string naming the columns that belong to group 1.
@@ -11,8 +11,8 @@
 #' @param batch_corr_method A character string naming the batch correction method. Can be one of `combat_np` (non-parametric) or `combat_p` (parametric). Defaults to `combat_np`. Ignored if `batches` is `NULL`.
 #' @param bcorr_data_validation `NULL` if no batch corrected data is already available. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available).
 #'
-#' @return An object of class `delboy`. Access this object using `delboy::hits`, and `delboy::plot.delboy`.
-#' @seealso \code{\link{hits}}, \code{\link{plot.delboy}}
+#' @return An object of class `delboy`. Access this object using `delboy::hits`, `delboy::plot.delboy`, `delboy::get_performance_stats`, and `delboy::get_deseq2_results`.
+#' @seealso \code{\link{hits}}, \code{\link{plot.delboy}}, \code{\link{get_performance_stats}}, \code{\link{get_deseq2_results}}
 #' @export
 #' @importFrom dplyr left_join filter select arrange
 #' @md

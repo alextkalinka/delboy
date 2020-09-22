@@ -8,24 +8,19 @@ run_delboy(
   data,
   group_1,
   group_2,
-  normalize,
   filter_cutoff,
   gene_column,
   batches = NULL,
   batch_corr_method = "combat_np",
-  bcorr_data_validation = NULL,
-  crispr = FALSE,
-  grna_column = "sgRNA"
+  bcorr_data_validation = NULL
 )
 }
 \arguments{
-\item{data}{A data frame containing count data for two different groups and their replicates. Can be a path to a file. If the count data needs to be normalized, indicate this using the \code{normalize} argument.}
+\item{data}{A data frame containing normalized count data for two different groups and their replicates. Can be a path to a file. Ideally the counts will already have been normalized to Transcripts Per Million (TPM), using, for example, the bias-aware quantification methods employed by \code{salmon} (Patro et al. 2017).}
 
 \item{group_1}{A character string naming the columns that belong to group 1.}
 
 \item{group_2}{A character string naming the columns that belong to group 2.}
-
-\item{normalize}{Character string naming the count normalization method. Can be one of \code{median_ratio}, \code{relative}, or \code{NULL} (indicates the data has already been normalized). If the input is RNAseq data, ideally the counts will already have been normalized to Transcripts Per Million (TPM), using, for example, the bias-aware quantification methods employed by \code{salmon} (Patro et al. 2017).}
 
 \item{filter_cutoff}{A numerical value indicating the cutoff below which (summed across all replicates) a gene (or gRNA) will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.}
 
@@ -36,16 +31,12 @@ run_delboy(
 \item{batch_corr_method}{A character string naming the batch correction method. Can be one of \code{combat_np} (non-parametric) or \code{combat_p} (parametric). Defaults to \code{combat_np}. Ignored if \code{batches} is \code{NULL}.}
 
 \item{bcorr_data_validation}{\code{NULL} if no batch corrected data is already available. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available).}
-
-\item{crispr}{Logical - is the data from a CRISPR pooled screen. Defaults to \code{FALSE}.}
-
-\item{grna_column}{A character string naming the column containing sgRNA IDs. Defaults to \code{sgRNA}. Ignored if \code{crispr} set to \code{FALSE}.}
 }
 \value{
-An object of class \code{delboy}. Access this object using \code{delboy::hits}, and \code{delboy::plot.delboy}.
+An object of class \code{delboy}. Access this object using \code{delboy::hits}, \code{delboy::plot.delboy}, \code{delboy::get_performance_stats}, and \code{delboy::get_deseq2_results}.
 }
 \description{
-Performs a differential-representation analysis using an elastic-net logistic regression approach for (normalized) count data that is split into two groups.
+Performs a differential-representation analysis using an elastic-net logistic regression approach for normalized count data that is split into two groups.
 }
 \references{
 \itemize{
@@ -54,5 +45,5 @@ Performs a differential-representation analysis using an elastic-net logistic re
 }
 }
 \seealso{
-\code{\link{hits}}, \code{\link{plot.delboy}}
+\code{\link{hits}}, \code{\link{plot.delboy}}, \code{\link{get_performance_stats}}, \code{\link{get_deseq2_results}}
 }
