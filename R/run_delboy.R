@@ -52,12 +52,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   ### 2B. Remove any irrelevant columns.
   data <- data[,c(gene_column, group_1, group_2)]
 
-  ### 3. Normalize counts.
-  if(!is.null(normalize)){
-
-  }
-
-  ### 4. Filter low count data prior to batch correction.
+  ### 3. Filter low count data prior to batch correction.
   cat("Filtering low-count cases...\n")
   tryCatch(data <- data[rowSums(data[,c(group_1, group_2)]) > filter_cutoff,],
            error = function(e) stop(paste("unable to filter low-count data:",e))
@@ -65,18 +60,18 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   if(nrow(data) < 200)
     stop(paste("only",nrow(data),"rows remain after filtering: consider using a less stringent 'filter_cutoff' value. Cutoff used:",filter_cutoff))
 
-  ### 5. Batch correction.
+  ### 4. Batch correction.
   if(!is.null(batches)){
     cat("Batch correcting data...\n")
     data <- delboy::batch_correct(data, group_1, group_2, gene_column)
   }
 
-  ### 6. Estimate parameters for performance evaluation.
-  ## 6A. Run DESeq2 on the original dataset.
+  ### 5. Estimate parameters for performance evaluation.
+  ## 5A. Run DESeq2 on the original dataset.
   deseq2_res <- delboy::run_deseq2(data, group_1, group_2, gene_column) %>%
     dplyr::left_join(data, by = c(id = gene_column))
 
-  ## 6B. Number of non-null cases.
+  ## 5B. Number of non-null cases.
   cat("Estimating the number of non-null cases...")
   non.null <- suppressWarnings(delboy::estimate_number_non_nulls(deseq2_res$pvalue))
   cat(non.null$num.non_null,"\n")
@@ -86,12 +81,12 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
     non.null$num.non_null <- 40
   }
 
-  ## 6C. Estimate non-null logFC distribution.
+  ## 5C. Estimate non-null logFC distribution.
   cat("Estimating non-null logFC distribution...\n")
   lfdr.lfc <- suppressWarnings(delboy::estimate_nonnull_logfc_distr(deseq2_res$log2FoldChange))
 
-  ### 8. Estimate delboy performance relative to DESeq2.
-  ## 8A. Batch-correct real signal to create true-negative dataset.
+  ### 6. Estimate delboy performance relative to DESeq2.
+  ## 6A. Batch-correct real signal to create true-negative dataset.
   if(is.null(bcorr_data_validation)){
     cat("Batch correction to create signal-corrected data for validation...\n")
     data.bc <- delboy::batch_correct(data, group_1, group_2, gene_column)
@@ -99,7 +94,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
     data.bc <- bcorr_data_validation
   }
 
-  ## 8B. Performance evaluation.
+  ## 6B. Performance evaluation.
   cat("Performance evaluation to validate results...\n")
   perf_eval <- suppressWarnings(
     delboy::evaluate_performance_rnaseq_calls(data.bc, group_1, group_2, gene_column,
@@ -108,32 +103,32 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
                                               lfdr.lfc$non_null.dens)
     )
 
-  ### 9. Prep data for Elastic-net analysis.
+  ### 7. Prep data for Elastic-net analysis.
   cat("Elastic-net logistic regression for hit detection...\n")
   data.elnet <- delboy::prep_elnet_data(data, group_1, group_2, gene_column)
 
-  ### 10. Elastic-net logistic regression to identify differentially-represented genes or gRNAs.
+  ### 8. Elastic-net logistic regression to identify differentially-represented genes or gRNAs.
   elnet.lr <- suppressWarnings(
     delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
                                    factor(data.elnet$treat),
                                    alpha = 0.5)
   )
 
-  ### 11. Combine hits with validation hit table to aid analysis of false positives.
+  ### 9. Combine hits with validation hit table to aid analysis of false positives.
   cat("Finishing up...\n")
   hits_orig_val <- delboy::combine_validation_original_hits(elnet.lr, deseq2_res,
                                                             perf_eval$delboy_hit_table)
 
-  ### 12. Create final Elnet hit table.
+  ### 10. Create final Elnet hit table.
   elnet_hits <- delboy::assemble_elnet_hits(hits_orig_val, deseq2_res,
                                             perf_eval$svm_validation$svm_validation_fit)
 
-  ### 13. Update performance stats after excluding predicted False Positives.
+  ### 11. Update performance stats after excluding predicted False Positives.
   pstats_excl_pred_fp <- delboy::exclude_predicted_FP_perf(perf_eval$svm_validation$data_svm,
                                                            perf_eval$performance_stats,
                                                            non.null$num.non_null)
 
-  ### 14. Build object of class 'delboy'.
+  ### 12. Build object of class 'delboy'.
   ret <- list(non_null = list(nonnull_number = non.null,
                               nonnull_lfc = lfdr.lfc),
               performance_eval = perf_eval,
