@@ -11,15 +11,16 @@ Description: Improves sensitivity for under-powered
     differential-expression experiments while controlling the FDR.
 License: MIT + file LICENSE
 Imports: 
-    dplyr,
-    e1071,
-    ggplot2,
-    glmnet,
-    locfdr,
-    rlang,
-    seqgendiff,
-    sva,
-    tidyr
+    DESeq2 (>= 1.28.1),
+    dplyr (>= 1.0.0),
+    e1071 (>= 1.7-3),
+    ggplot2 (>= 3.3.1),
+    glmnet (>= 4.0-2),
+    locfdr (>= 1.1-8),
+    rlang (>= 0.4.6),
+    seqgendiff (>= 1.2.2),
+    sva (>= 3.36.0),
+    tidyr (>= 1.1.0)
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
