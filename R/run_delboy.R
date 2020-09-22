@@ -2,17 +2,14 @@
 #'
 #' Performs a differential-representation analysis using an elastic-net logistic regression approach for (normalized) count data that is split into two groups.
 #'
-#' @param data A data frame containing count data for two different groups and their replicates. Can be a path to a file. If the count data needs to be normalized, indicate this using the `normalize` argument.
+#' @param data A data frame containing normalized count data for two different groups and their replicates. Can be a path to a file. Ideally the counts will already have been normalized to Transcripts Per Million (TPM), using, for example, the bias-aware quantification methods employed by `salmon` (Patro et al. 2017).
 #' @param group_1 A character string naming the columns that belong to group 1.
 #' @param group_2 A character string naming the columns that belong to group 2.
-#' @param normalize Character string naming the count normalization method. Can be one of `median_ratio`, `relative`, or `NULL` (indicates the data has already been normalized). If the input is RNAseq data, ideally the counts will already have been normalized to Transcripts Per Million (TPM), using, for example, the bias-aware quantification methods employed by `salmon` (Patro et al. 2017).
 #' @param filter_cutoff A numerical value indicating the cutoff below which (summed across all replicates) a gene (or gRNA) will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.
 #' @param gene_column A character string naming the column containing gene names.
 #' @param batches A character vector identifying the batch structure of the experiment. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`.
 #' @param batch_corr_method A character string naming the batch correction method. Can be one of `combat_np` (non-parametric) or `combat_p` (parametric). Defaults to `combat_np`. Ignored if `batches` is `NULL`.
 #' @param bcorr_data_validation `NULL` if no batch corrected data is already available. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available).
-#' @param crispr Logical - is the data from a CRISPR pooled screen. Defaults to `FALSE`.
-#' @param grna_column A character string naming the column containing sgRNA IDs. Defaults to `sgRNA`. Ignored if `crispr` set to `FALSE`.
 #'
 #' @return An object of class `delboy`. Access this object using `delboy::hits`, and `delboy::plot.delboy`.
 #' @seealso \code{\link{hits}}, \code{\link{plot.delboy}}
@@ -22,10 +19,9 @@
 #' @references
 #' * Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv.
 #' * Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
-run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_column,
+run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
                        batches = NULL, batch_corr_method = "combat_np",
-                       bcorr_data_validation = NULL,
-                       crispr = FALSE, grna_column = "sgRNA"){
+                       bcorr_data_validation = NULL){
   # Random samples taken.
   set.seed(1)
 
@@ -52,17 +48,9 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
       stop(paste("'bcorr_data_validation' should be a data frame, instead got",
                  class(bcorr_data_validation)))
   }
-  if(crispr){
-    if(!grna_column %in% colnames(data))
-      stop(paste("unable to find the gRNA column",grna_column))
-  }
 
   ### 2B. Remove any irrelevant columns.
-  if(crispr){
-    data <- data[,c(gene_column, grna_column, group_1, group_2)]
-  }else{
-    data <- data[,c(gene_column, group_1, group_2)]
-  }
+  data <- data[,c(gene_column, group_1, group_2)]
 
   ### 3. Normalize counts.
   if(!is.null(normalize)){
@@ -85,14 +73,8 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
 
   ### 6. Estimate parameters for performance evaluation.
   ## 6A. Run DESeq2 on the original dataset.
-  if(crispr){
-    # Needed to optimise alpha.
-    deseq2_res <- delboy::run_deseq2(data, group_1, group_2, grna_column) %>%
-      dplyr::left_join(data, by = c(id = grna_column))
-  }else{
-    deseq2_res <- delboy::run_deseq2(data, group_1, group_2, gene_column) %>%
-      dplyr::left_join(data, by = c(id = gene_column))
-  }
+  deseq2_res <- delboy::run_deseq2(data, group_1, group_2, gene_column) %>%
+    dplyr::left_join(data, by = c(id = gene_column))
 
   ## 6B. Number of non-null cases.
   cat("Estimating the number of non-null cases...")
@@ -100,8 +82,8 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
   cat(non.null$num.non_null,"\n")
   # Sanity-check non-null estimate.
   if(non.null$num.non_null < 40){
-    cat("Low estimate of number of non-null cases, setting to 100\n")
-    non.null$num.non_null <- 100
+    cat("Low estimate of number of non-null cases, setting to 40\n")
+    non.null$num.non_null <- 40
   }
 
   ## 6C. Estimate non-null logFC distribution.
@@ -110,23 +92,21 @@ run_delboy <- function(data, group_1, group_2, normalize, filter_cutoff, gene_co
 
   ### 8. Estimate delboy performance relative to DESeq2.
   ## 8A. Batch-correct real signal to create true-negative dataset.
-  if(!crispr){
-    if(is.null(bcorr_data_validation)){
-      cat("Batch correction to create signal-corrected data for validation...\n")
-      data.bc <- delboy::batch_correct(data, group_1, group_2, gene_column)
-    }else{
-      data.bc <- bcorr_data_validation
-    }
-
-    ## 8B. Performance evaluation.
-    cat("Performance evaluation to validate results...\n")
-    perf_eval <- suppressWarnings(
-      delboy::evaluate_performance_rnaseq_calls(data.bc, group_1, group_2, gene_column,
-                                                non.null$num.non_null,
-                                                lfdr.lfc$non_null.lfc,
-                                                lfdr.lfc$non_null.dens)
-    )
+  if(is.null(bcorr_data_validation)){
+    cat("Batch correction to create signal-corrected data for validation...\n")
+    data.bc <- delboy::batch_correct(data, group_1, group_2, gene_column)
+  }else{
+    data.bc <- bcorr_data_validation
   }
+
+  ## 8B. Performance evaluation.
+  cat("Performance evaluation to validate results...\n")
+  perf_eval <- suppressWarnings(
+    delboy::evaluate_performance_rnaseq_calls(data.bc, group_1, group_2, gene_column,
+                                              non.null$num.non_null,
+                                              lfdr.lfc$non_null.lfc,
+                                              lfdr.lfc$non_null.dens)
+    )
 
   ### 9. Prep data for Elastic-net analysis.
   cat("Elastic-net logistic regression for hit detection...\n")
