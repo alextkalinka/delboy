@@ -9,13 +9,14 @@
 #' @return A coefficient matrix.
 #' @export
 #' @importFrom dplyr mutate select
+#' @importFrom rlang !! sym
 make_coef_matrix <- function(data, lfc_samp, gene_column){
   tryCatch({
     coef_mat <- data %>%
-      dplyr::mutate(lfc = ifelse(!!sym(gene_column) %in% names(lfc_samp),
-                                 lfc_samp[match(!!sym(gene_column), names(lfc_samp))], 0)) %>%
+      dplyr::mutate(lfc = ifelse(!!rlang::sym(gene_column) %in% names(lfc_samp),
+                                 lfc_samp[match(!!rlang::sym(gene_column), names(lfc_samp))], 0)) %>%
       dplyr::select(lfc) %>%
-      as.matrix
+      as.matrix()
   },
   error = function(e) stop(paste("unable to create coefficient matrix:",e))
   )

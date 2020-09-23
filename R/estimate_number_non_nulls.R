@@ -6,7 +6,7 @@
   pv <- data.frame(pvalue = pval[pick]) %>%
     dplyr::mutate(pv_cuts = cut(pvalue, breaks=28)) %>%
     dplyr::group_by(pv_cuts) %>%
-    dplyr::mutate(midp = median(pvalue,na.rm=T)) %>%
+    dplyr::mutate(midp = stats::median(pvalue,na.rm=T)) %>%
     dplyr::ungroup() %>%
     dplyr::mutate(prob = midp/sum(unique(midp))) %>%
     dplyr::group_by(pv_cuts) %>%
@@ -33,12 +33,13 @@
 #' @return A list containing an integer giving an estimate of the number of non-null cases, and an estimate of the misfit of the `locfdr` mixture model.
 #' @importFrom locfdr locfdr
 #' @importFrom dplyr between group_by ungroup mutate sample_n %>%
+#' @importFrom stats median qnorm
 #' @export
 estimate_number_non_nulls <- function(pvals){
   misfit <- FALSE
   tryCatch({
     withCallingHandlers({
-      qn <- qnorm(.smooth_pvals(pvals))
+      qn <- stats::qnorm(.smooth_pvals(pvals))
       lfdr <- locfdr::locfdr(qn, plot = 0)
     },
     warning = function(w) misfit <<- gsub("^.*?misfit = (\\d+?).*$","\\1",w)

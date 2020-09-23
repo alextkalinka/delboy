@@ -10,8 +10,8 @@
 #'
 #' @return A data frame of batch-corrected data (can contain negative values).
 #' @importFrom sva ComBat
-#' @importFrom dplyr mutate select everything sym
-#' @importFrom rlang :=
+#' @importFrom dplyr mutate select everything
+#' @importFrom rlang := !! sym
 #' @export
 batch_correct <- function(data, group_1, group_2, gene_column, method = "np"){
   tryCatch({
@@ -27,8 +27,8 @@ batch_correct <- function(data, group_1, group_2, gene_column, method = "np"){
 
     # 4. Convert back to data frame.
     data.bc <- as.data.frame(data.bc) %>%
-      dplyr::mutate(!!sym(gene_column) := rownames(.)) %>%
-      dplyr::select(!!sym(gene_column), dplyr::everything())
+      dplyr::mutate(!!rlang::sym(gene_column) := rownames(.)) %>%
+      dplyr::select(!!rlang::sym(gene_column), dplyr::everything())
   },
   error = function(e) stop(paste("unable to batch correct data:",e))
   )

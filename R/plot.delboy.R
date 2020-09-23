@@ -92,8 +92,8 @@
 #'
 #' Plotting for `delboy` objects.
 #'
-#' @param delboy_res Output from `delboy::run_delboy`.
-#' @param type A character string naming the plot type: `fc_expr`, `fc_expr_FN`, `lfc_nonnull` `deviance`, `misclass`.
+#' @param x Output from `delboy::run_delboy`.
+#' @param type A character string naming the plot type: `fc_expr`, `fc_expr_FN`, `lfc_nonnull` `deviance`, `misclass`. Defaults to `fc_expr`.
 #' @param xlim xlim values for x-axis. Defaults to `NULL` for `c(0.5,4)`.
 #' @param ylim xlim values for y-axis. Defaults to `NULL` for `c(0,1.5)`.
 #' @param ... Other arguments to be passed to `plot`.
@@ -101,12 +101,13 @@
 #' @return Used for side-effect of plotting.
 #' @export
 #' @importFrom ggplot2 ggplot aes facet_grid geom_point geom_contour geom_line geom_vline geom_hline ggtitle
-plot.delboy <- function(delboy_res, type, xlim = NULL, ylim = NULL, ...){
+plot.delboy <- function(x, type = "fc_expr", xlim = NULL, ylim = NULL, ...){
+  if(!inherits(x,"delboy")) stop(paste("expecting an object of class 'delboy', got:",class(x)))
   switch(type,
-         fc_expr = .plotFCExpr(delboy_res, xlim, ylim),
-         fc_expr_FN = .plotFCExprFN(delboy_res, xlim, ylim),
-         lfc_nonnull = .plotLFCNonNull(delboy_res),
-         deviance = .plotBinDev(delboy_res),
-         misclass = .plotMisClass(delboy_res)
+         fc_expr = .plotFCExpr(x, xlim, ylim),
+         fc_expr_FN = .plotFCExprFN(x, xlim, ylim),
+         lfc_nonnull = .plotLFCNonNull(x),
+         deviance = .plotBinDev(x),
+         misclass = .plotMisClass(x)
          )
 }

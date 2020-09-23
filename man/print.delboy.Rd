@@ -4,10 +4,10 @@
 \alias{print.delboy}
 \title{print.delboy}
 \usage{
-\method{print}{delboy}(delboy_res)
+\method{print}{delboy}(x, ...)
 }
 \arguments{
-\item{delboy_res}{Output from \code{delboy::run_delboy}.}
+\item{x}{Output from \code{delboy::run_delboy}.}
 
 \item{...}{Other arguments to be passed to \code{print}.}
 }

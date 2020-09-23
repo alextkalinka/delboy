@@ -11,7 +11,7 @@
 #' @return A data frame.
 #' @export
 #' @importFrom dplyr mutate select everything %>%
-#' @importFrom rlang := sym
+#' @importFrom rlang := sym !!
 #' @importFrom magrittr %<>%
 prep_bthin_matrix_diffrep <- function(data, bthin_matrix, sample_names, treat_cols, gene_column){
   tryCatch({

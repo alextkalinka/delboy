@@ -15,6 +15,7 @@
 #' @seealso \code{\link{hits}}, \code{\link{plot.delboy}}, \code{\link{get_performance_stats}}, \code{\link{get_deseq2_results}}
 #' @export
 #' @importFrom dplyr left_join filter select arrange
+#' @importFrom utils read.delim
 #' @md
 #' @references
 #' * Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv.
@@ -28,7 +29,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   ### 1. Read data.
   if(is.character(data)){
     tryCatch(
-      data <- read.delim(data, stringsAsFactors = F),
+      data <- utils::read.delim(data, stringsAsFactors = F),
       error = function(e) stop(paste("unable to read data file",data))
     )
   }else if(!is.data.frame(data)){

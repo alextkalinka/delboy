@@ -9,6 +9,8 @@
 #' @return An object of class `delboy_elnet`.
 #' @export
 #' @importFrom glmnet glmnet cv.glmnet
+#' @importFrom stats coef
+#' @importFrom utils tail
 run_elnet_logistic_reg <- function(data, treat, alpha){
   tryCatch({
     max.num_reps <- sort(table(treat),decreasing = T)[1]
@@ -29,9 +31,9 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
     )
     # Extract non-zero coefficients at point where fit is best (lambda min).
     if(max.num_reps > 3){
-      genes.elnet <- coef(fit.elnet, s = fit.cv_dev$lambda.min)
+      genes.elnet <- stats::coef(fit.elnet, s = fit.cv_dev$lambda.min)
     }else{
-      genes.elnet <- coef(fit.elnet, s = tail(fit.elnet$lambda,1))
+      genes.elnet <- stats::coef(fit.elnet, s = utils::tail(fit.elnet$lambda,1))
     }
 
     # Over-represented in group 2.

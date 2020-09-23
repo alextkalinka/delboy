@@ -14,7 +14,7 @@
 #' @export
 #' @importFrom seqgendiff thin_diff
 #' @importFrom dplyr select
-#' @importFrom rlang sym
+#' @importFrom rlang sym !!
 evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_column,
                                               num_non_null, lfc, lfc_dens){
   tryCatch({

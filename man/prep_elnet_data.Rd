@@ -19,5 +19,5 @@ prep_elnet_data(data, group_1, group_2, gene_column)
 A data frame.
 }
 \description{
-Prepare data for use in an Elastic-net logistic regression.
+Prepare data for use in an Elastic-net logistic regression - needs to be in wide-format with genes as columns.
 }

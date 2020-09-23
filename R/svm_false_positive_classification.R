@@ -10,6 +10,7 @@
 #' @importFrom e1071 svm
 #' @importFrom dplyr %>% filter select mutate
 #' @importFrom magrittr %<>%
+#' @importFrom stats predict
 svm_false_positive_classification <- function(data, kernel){
   tryCatch({
     data_svm <- data %>%
@@ -17,12 +18,12 @@ svm_false_positive_classification <- function(data, kernel){
       dplyr::mutate(False_Positive = as.factor(ifelse(hit_type=="True_Positive",0,1))) %>%
       dplyr::select(False_Positive, abs_log2FoldChange, log10_baseExpr)
     svm_val <- e1071::svm(False_Positive ~ ., data_svm, kernel = kernel)
-    pred_fp <- predict(svm_val, data_svm)
+    pred_fp <- stats::predict(svm_val, data_svm)
     data_svm %<>%
       dplyr::mutate(Predicted_FP = pred_fp)
     data.grid <- expand.grid(log10_baseExpr = seq(from=0,to=5,length=400),
                              abs_log2FoldChange = seq(from=0,to=4,length=400)) %>%
-      dplyr::mutate(Predicted_FP = as.numeric(predict(svm_val, .)))
+      dplyr::mutate(Predicted_FP = as.numeric(stats::predict(svm_val, .)))
   },
   error = function(e) stop(paste("unable to perform SVM on validation data:",e))
   )
