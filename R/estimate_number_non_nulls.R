@@ -1,10 +1,14 @@
-# Smooth p-values > 0.5 from DESeq2 to enable 'locfdr' estimate of non-null abundance.
-# DESeq2 sometimes produces an excess of p-values > 0.9 and this can hamper the Gaussian mixture models used by locfdr.
+# Smooth p-values from DESeq2 to enable 'locfdr' estimate of non-null abundance.
+# DESeq2 sometimes produces an excess of p-values > 0.9 and this lumpiness in the p-value distribution can hamper the Gaussian mixture models used by locfdr.
 .smooth_pvals <- function(pval, start=0.5){
   pick <- dplyr::between(pval,start,1)
   tot <- sum(pick)
+  # 28 breaks with 7576 pvals.
+  num_breaks <- round(0.0037*tot)
+  if(num_breaks == 0)
+    num_breaks <- 7
   pv <- data.frame(pvalue = pval[pick]) %>%
-    dplyr::mutate(pv_cuts = cut(pvalue, breaks=28)) %>%
+    dplyr::mutate(pv_cuts = cut(pvalue, breaks = num_breaks)) %>%
     dplyr::group_by(pv_cuts) %>%
     dplyr::mutate(midp = stats::median(pvalue,na.rm=T)) %>%
     dplyr::ungroup() %>%
@@ -38,12 +42,53 @@
 estimate_number_non_nulls <- function(pvals){
   misfit <- FALSE
   tryCatch({
+    # 1. Unaltered p-vals.
+    misfit_1 <- FALSE
     withCallingHandlers({
-      qn <- stats::qnorm(.smooth_pvals(pvals))
-      lfdr <- locfdr::locfdr(qn, plot = 0)
+      qn <- stats::qnorm(pvals)
+      lfdr_1 <- locfdr::locfdr(qn, plot = 0)
     },
-    warning = function(w) misfit <<- gsub("^.*?misfit = (\\d+?).*$","\\1",w)
+    warning = function(w) misfit_1 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
     )
+
+    if(is.character(misfit_1)){
+      # 2. Smoothes p-vals (start=0.5).
+      misfit_2 <- FALSE
+      withCallingHandlers({
+        qn <- stats::qnorm(.smooth_pvals(pvals))
+        lfdr_2 <- locfdr::locfdr(qn, plot = 0)
+      },
+      warning = function(w) misfit_2 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
+      )
+
+      if(is.character(misfit_2)){
+        # 3. Smoothes p-vals (start=0.9).
+        misfit_3 <- FALSE
+        withCallingHandlers({
+          qn <- stats::qnorm(.smooth_pvals(pvals, start=0.9))
+          lfdr_3 <- locfdr::locfdr(qn, plot = 0)
+        },
+        warning = function(w) misfit_3 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
+        )
+
+        if(is.character(misfit_3)){
+          if(as.numeric(misfit_2) <= as.numeric(misfit_3)){
+            lfdr <- lfdr_2
+            misfit <- misfit_2
+          }else{
+            lfdr <- lfdr_3
+            misfit <- misfit_3
+          }
+        }else{
+          lfdr <- lfdr_3
+        }
+      }else{
+        lfdr <- lfdr_2
+      }
+    }else{
+      lfdr <- lfdr_1
+    }
+
     num.non_null <- round(sum(lfdr$mat[1:which(lfdr$mat[,11]==0)[1], 11]))
   },
   error = function(e) stop(paste("unable to estimate number of non-nulls:",e))
