@@ -40,6 +40,7 @@
 #' @importFrom stats median qnorm
 #' @export
 estimate_number_non_nulls <- function(pvals){
+  pvals <- pvals[!is.na(pvals)]
   misfit <- FALSE
   tryCatch({
     # 1. Unaltered p-vals.
@@ -51,7 +52,7 @@ estimate_number_non_nulls <- function(pvals){
     warning = function(w) misfit_1 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
     )
 
-    if(is.character(misfit_1)){
+    if(is.character(misfit_1) & !grepl(" ",misfit_1)){
       # 2. Smoothes p-vals (start=0.5).
       misfit_2 <- FALSE
       withCallingHandlers({
@@ -61,7 +62,7 @@ estimate_number_non_nulls <- function(pvals){
       warning = function(w) misfit_2 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
       )
 
-      if(is.character(misfit_2)){
+      if(is.character(misfit_2) & !grepl(" ",misfit_2)){
         # 3. Smoothes p-vals (start=0.9).
         misfit_3 <- FALSE
         withCallingHandlers({
@@ -71,7 +72,7 @@ estimate_number_non_nulls <- function(pvals){
         warning = function(w) misfit_3 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
         )
 
-        if(is.character(misfit_3)){
+        if(is.character(misfit_3) & !grepl(" ",misfit_3)){
           if(as.numeric(misfit_2) <= as.numeric(misfit_3)){
             lfdr <- lfdr_2
             misfit <- misfit_2
