@@ -18,18 +18,24 @@
 evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_column,
                                               num_non_null, lfc, lfc_dens){
   tryCatch({
+    # DB - decision boundary: a larger sample of LFCs needed for SVM decision boundary.
     # 1. Prep for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
 
     # 2. Sample logFC values for num_non_null cases.
     lfc_samp <- sample(lfc, num_non_null, prob = lfc_dens/sum(lfc_dens), replace = T)
+    num_non_null.DB <- round(0.1*nrow(data))
+    lfc_samp.DB <- sample(lfc, num_non_null.DB, prob = lfc_dens/sum(lfc_dens), replace = T)
 
     # 3. Sample genes to add signal to.
     genes_signal <- sample(data[,gene_column], num_non_null, replace = F)
     names(lfc_samp) <- genes_signal
+    genes_signal.DB <- sample(data[,gene_column], num_non_null.DB, replace = F)
+    names(lfc_samp.DB) <- genes_signal.DB
 
     # 4. Create coefficient matrix for seqgendiff.
     coef_mat <- delboy::make_coef_matrix(data, lfc_samp, gene_column)
+    coef_mat.DB <- delboy::make_coef_matrix(data, lfc_samp.DB, gene_column)
 
     # 5. Create design matrix for seqgendiff.
     design_mat <- delboy::make_design_matrix(group_1, group_2)
@@ -38,9 +44,16 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
     thout <- seqgendiff::thin_diff(mat = data.m,
                                    design_fixed = design_mat,
                                    coef_fixed = coef_mat)
+    thout.DB <- seqgendiff::thin_diff(mat = data.m,
+                                   design_fixed = design_mat,
+                                   coef_fixed = coef_mat.DB)
 
     # 7. Prep bthin matrix for use in DiffExp analyses.
     data.bthin <- delboy::prep_bthin_matrix_diffrep(data, thout$mat,
+                                                    colnames(data.m),
+                                                    as.logical(c(design_mat)),
+                                                    gene_column)
+    data.bthin.DB <- delboy::prep_bthin_matrix_diffrep(data, thout.DB$mat,
                                                     colnames(data.m),
                                                     as.logical(c(design_mat)),
                                                     gene_column)
@@ -51,13 +64,18 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
     group_2.v <- colnames(data.bthin %>%
                             dplyr::select(- !!rlang::sym(gene_column)))[as.logical(c(design_mat))]
     deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column)
+    deseq2_res.DB <- delboy::run_deseq2(data.bthin.DB, group_1.v, group_2.v, gene_column)
 
     # 9. Prep data for Elastic-net logistic regression.
     data.elnet <- delboy::prep_elnet_data(data.bthin, group_1.v, group_2.v, gene_column)
+    data.elnet.DB <- delboy::prep_elnet_data(data.bthin.DB, group_1.v, group_2.v, gene_column)
 
     # 10. Run Elastic-net logistic regression on bthin data.
     elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
                                                factor(data.elnet$treat),
+                                               alpha = 0.5)
+    elnet.lr.DB <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet.DB[,3:ncol(data.elnet.DB)]),
+                                               factor(data.elnet.DB$treat),
                                                alpha = 0.5)
 
     # 11. Extract performance statistics.
@@ -67,16 +85,19 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
     delboy_hit_df <- delboy::make_delboy_hit_comparison_table(elnet.lr,
                                                               deseq2_res,
                                                               lfc_samp)
+    delboy_hit_df.DB <- delboy::make_delboy_hit_comparison_table(elnet.lr.DB,
+                                                              deseq2_res.DB,
+                                                              lfc_samp.DB)
 
     # 13. SVM for false positive classification.
-    svm_validation <- delboy::svm_false_positive_classification(delboy_hit_df, "polynomial")
+    svm_validation <- delboy::svm_false_positive_classification(delboy_hit_df.DB, "polynomial")
 
     # 14. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_samp,
                 data.bthin = data.bthin,
                 elnet_lr_res = elnet.lr,
                 deseq2_res = deseq2_res,
-                delboy_hit_table = delboy_hit_df,
+                delboy_hit_table = delboy_hit_df.DB,
                 performance_stats = perf_stats,
                 svm_validation = svm_validation)
     class(ret) <- "delboy_performance"
