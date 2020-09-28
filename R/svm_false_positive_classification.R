@@ -14,7 +14,10 @@
 svm_false_positive_classification <- function(data, kernel){
   tryCatch({
     data_svm <- data %>%
-      dplyr::filter(hit_type != "False_Negative") %>%
+      dplyr::filter(hit_type != "False_Negative" & !is.na(hit_type) &
+                      !is.na(abs_log2FoldChange) &
+                      !is.na(log10_baseExpr) & !is.infinite(log10_baseExpr) &
+                      !is.infinite(abs_log2FoldChange)) %>%
       dplyr::mutate(False_Positive = as.factor(ifelse(hit_type=="True_Positive",0,1))) %>%
       dplyr::select(False_Positive, abs_log2FoldChange, log10_baseExpr)
     svm_val <- e1071::svm(False_Positive ~ ., data_svm, kernel = kernel)
