@@ -7,11 +7,12 @@
 #' @return An object of class delboy_logfc
 #' @export
 #' @importFrom locfdr locfdr
+#' @importFrom dplyr between
 estimate_nonnull_logfc_distr <- function(logfc){
   misfit <- FALSE
   tryCatch({
     withCallingHandlers({
-      lfdr.lfc <- locfdr::locfdr(logfc, plot = 0)
+      lfdr.lfc <- locfdr::locfdr(logfc[dplyr::between(logfc,-4,4)], plot = 0)
     },
     warning = function(w) misfit <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
     )
