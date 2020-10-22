@@ -1,3 +1,11 @@
+# Helper functions.
+.min_range <- function(data){
+  pos <- data[data > 0]
+  neg <- abs(data[data < 0])
+  return(min(c(max(pos), max(neg))))
+}
+
+
 #' estimate_nonnull_logfc_distr
 #'
 #' Estimates the full non-null logFC distribution based on `DESeq2` logFC estimates and mixture model fits employed by `locfdr`.
@@ -12,7 +20,8 @@ estimate_nonnull_logfc_distr <- function(logfc){
   misfit <- FALSE
   tryCatch({
     withCallingHandlers({
-      lfdr.lfc <- locfdr::locfdr(logfc[dplyr::between(logfc,-4,4)], plot = 0)
+      minr <- .min_range(logfc)
+      lfdr.lfc <- locfdr::locfdr(logfc[dplyr::between(logfc,-minr, minr)], plot = 0)
     },
     warning = function(w) misfit <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
     )
