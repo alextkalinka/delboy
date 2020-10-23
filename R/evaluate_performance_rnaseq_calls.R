@@ -18,7 +18,6 @@
 evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_column,
                                               num_non_null, lfc, lfc_dens){
   tryCatch({
-    # DB - decision boundary: a larger sample of LFCs needed for SVM decision boundary.
     # 1. Prep for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
 
@@ -68,7 +67,6 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
     delboy_hit_df <- delboy::make_delboy_hit_comparison_table(elnet.lr,
                                                               deseq2_res,
                                                               lfc_samp)
-    print(table(delboy_hit_df$hit_type))
     # 13. SVM for false positive classification.
     svm_validation <- delboy::svm_false_positive_classification(delboy_hit_df, "polynomial")
 
