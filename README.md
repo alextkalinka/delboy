@@ -58,7 +58,7 @@ plot(db, type = "lfc_nonnull")
 
 ## References
 
-Kalinka, A. T. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv [10.1101/2020.10.15.340737](https://www.biorxiv.org/content/10.1101/2020.10.15.340737v1.full).
+Kalinka, A. T. (2020). Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv [10.1101/2020.10.15.340737](https://www.biorxiv.org/content/10.1101/2020.10.15.340737v1.full).
 
 ## Bugs, Issues, or Requests
 
