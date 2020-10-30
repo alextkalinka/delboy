@@ -20,7 +20,7 @@ svm_false_positive_classification <- function(data, kernel){
                       !is.infinite(abs_log2FoldChange)) %>%
       dplyr::mutate(False_Positive = as.factor(ifelse(hit_type=="True_Positive",0,1))) %>%
       dplyr::select(False_Positive, abs_log2FoldChange, log10_baseExpr)
-    svm_val <- e1071::svm(False_Positive ~ ., data_svm, kernel = kernel)
+    svm_val <- e1071::svm(False_Positive ~ ., data_svm, kernel = kernel, gamma = 0.25)
     pred_fp <- stats::predict(svm_val, data_svm)
     data_svm %<>%
       dplyr::mutate(Predicted_FP = pred_fp)
