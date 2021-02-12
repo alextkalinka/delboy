@@ -93,7 +93,7 @@
 #' Plotting for `delboy` objects.
 #'
 #' @param x Output from `delboy::run_delboy`.
-#' @param type A character string naming the plot type: `fc_expr`, `fc_expr_FN`, `lfc_nonnull` `deviance`, `misclass`. Defaults to `fc_expr`.
+#' @param type A character string naming the plot type: `fc_expr`, `fc_expr_FN`, `lfc_nonnull`, `deviance`, or `misclass`. Defaults to `fc_expr`.
 #' @param xlim xlim values for x-axis. Defaults to `NULL` for `c(0.5,4)`.
 #' @param ylim xlim values for y-axis. Defaults to `NULL` for `c(0,1.5)`.
 #' @param ... Other arguments to be passed to `plot`.

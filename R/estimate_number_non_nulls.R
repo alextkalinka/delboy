@@ -28,6 +28,12 @@
 }
 
 
+.cleanup_qnorm <- function(qn){
+  qn <- qn[!is.infinite(qn)]
+  qn <- qn[!is.na(qn)]
+  return(qn)
+}
+
 #' estimate_number_non_nulls
 #'
 #' Estimates the number of non-null cases in a dataset using `locfdr` with raw p-values as inputs.
@@ -46,7 +52,7 @@ estimate_number_non_nulls <- function(pvals){
     # 1. Unaltered p-vals.
     misfit_1 <- FALSE
     withCallingHandlers({
-      qn <- stats::qnorm(pvals)
+      qn <- .cleanup_qnorm(stats::qnorm(pvals))
       lfdr_1 <- locfdr::locfdr(qn, plot = 0)
     },
     warning = function(w) misfit_1 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
@@ -56,7 +62,7 @@ estimate_number_non_nulls <- function(pvals){
       # 2. Smoothes p-vals (start=0.5).
       misfit_2 <- FALSE
       withCallingHandlers({
-        qn <- stats::qnorm(.smooth_pvals(pvals))
+        qn <- .cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals)))
         lfdr_2 <- locfdr::locfdr(qn, plot = 0)
       },
       warning = function(w) misfit_2 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
@@ -66,7 +72,7 @@ estimate_number_non_nulls <- function(pvals){
         # 3. Smoothes p-vals (start=0.9).
         misfit_3 <- FALSE
         withCallingHandlers({
-          qn <- stats::qnorm(.smooth_pvals(pvals, start=0.9))
+          qn <- .cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals, start=0.9)))
           lfdr_3 <- locfdr::locfdr(qn, plot = 0)
         },
         warning = function(w) misfit_3 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)

@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{Output from \code{delboy::run_delboy}.}
 
-\item{type}{A character string naming the plot type: \code{fc_expr}, \code{fc_expr_FN}, \code{lfc_nonnull} \code{deviance}, \code{misclass}. Defaults to \code{fc_expr}.}
+\item{type}{A character string naming the plot type: \code{fc_expr}, \code{fc_expr_FN}, \code{lfc_nonnull}, \code{deviance}, or \code{misclass}. Defaults to \code{fc_expr}.}
 
 \item{xlim}{xlim values for x-axis. Defaults to \code{NULL} for \code{c(0.5,4)}.}
 
