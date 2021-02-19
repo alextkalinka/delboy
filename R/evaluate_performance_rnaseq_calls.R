@@ -73,7 +73,9 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
       all_val_perf <- rbind(all_val_perf, delboy_hit_df)
     }
     # 13. SVM for false positive classification.
-    svm_validation <- delboy::svm_false_positive_classification(all_val_perf, "radial")
+    #svm_validation <- delboy::svm_false_positive_classification(all_val_perf, "radial")
+    # 13. Calculate Bayes Factors for False Positive classification.
+
 
     # 14. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_samp,
