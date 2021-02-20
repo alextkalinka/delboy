@@ -38,12 +38,12 @@ calculate_bayes_factors_2dkcde <- function(data, data_bs, fc_column, expr_column
       dplyr::select(!!rlang::sym(fc_column), !!rlang::sym(expr_column))
 
     # 2. Estimate 2d cumulative distribution functions for TPs and FPs.
-    Fhat_tp <- ks::kcde(as.matrix(data_bs.tp))
-    Fhat_fp <- ks::kcde(as.matrix(data_bs.fp))
+    Fhat_tp <- ks::kcde(data_bs.tp)
+    Fhat_fp <- ks::kcde(data_bs.fp)
 
     # 3. Predict 2d cumulative probabilities for query data.
-    cp_tp <- predict(Fhat_tp, x = as.matrix(data))
-    cp_fp <- predict(Fhat_fp, x = as.matrix(data))
+    cp_tp <- predict(Fhat_tp, x = as.matrix(data_query))
+    cp_fp <- predict(Fhat_fp, x = as.matrix(data_query))
 
     # 4. Calculate Bayes Factors.
     fc_median.tp <- median(data_bs.tp[,fc_column], na.rm = T)
@@ -64,5 +64,7 @@ calculate_bayes_factors_2dkcde <- function(data, data_bs, fc_column, expr_column
   },
   error = function(e) stop(paste("unable to calculate bayes factors:",e))
   )
-
+  ret <- list(kcde_TP = Fhat_tp, kcde_FP = Fhat_fp,
+              cum_prob_BF = data_bf)
+  return(ret)
 }
