@@ -27,19 +27,19 @@ calculate_bayes_factors_2dkcde <- function(data, data_bs, fc_column, expr_column
   tryCatch({
     # 1. Prep data.
     data_query <- data %>%
-      dplyr::select(!!rlang::sym(fc_column), !!rlang::sym(expr_column))
+      dplyr::select(!!rlang::sym(fc_column))
 
     data_bs.tp <- data_bs %>%
       dplyr::filter(!!rlang::sym(group_column) == "True_Positive") %>%
-      dplyr::select(!!rlang::sym(fc_column), !!rlang::sym(expr_column))
+      dplyr::select(!!rlang::sym(fc_column))
 
     data_bs.fp <- data_bs %>%
       dplyr::filter(!!rlang::sym(group_column) == "False_Positive") %>%
-      dplyr::select(!!rlang::sym(fc_column), !!rlang::sym(expr_column))
+      dplyr::select(!!rlang::sym(fc_column))
 
     # 2. Estimate 2d cumulative distribution functions for TPs and FPs.
-    Fhat_tp <- ks::kcde(data_bs.tp)
-    Fhat_fp <- ks::kcde(data_bs.fp)
+    Fhat_tp <- ks::kcde(as.matrix(data_bs.tp))
+    Fhat_fp <- ks::kcde(as.matrix(data_bs.fp))
 
     # 3. Predict 2d cumulative probabilities for query data.
     cp_tp <- predict(Fhat_tp, x = as.matrix(data_query))
@@ -48,15 +48,16 @@ calculate_bayes_factors_2dkcde <- function(data, data_bs, fc_column, expr_column
     # 4. Calculate Bayes Factors.
     fc_median.tp <- median(data_bs.tp[,fc_column], na.rm = T)
     fc_median.fp <- median(data_bs.fp[,fc_column], na.rm = T)
-    expr_median.tp <- median(data_bs.tp[,expr_column], na.rm = T)
-    expr_median.fp <- median(data_bs.fp[,expr_column], na.rm = T)
+    #expr_median.tp <- median(data_bs.tp[,expr_column], na.rm = T)
+    #expr_median.fp <- median(data_bs.fp[,expr_column], na.rm = T)
     data_bf <- data %>%
-      dplyr::mutate(kcum_prob_TP = cp_tp, kcum_prob_FP = cp_fp) %>%
+      dplyr::mutate(kcum_prob_TP = cp_tp,
+                    kcum_prob_FP = cp_fp) %>%
       # Calculate 'lower.tail' cum_prob for data to the right of both distributions.
       dplyr::rowwise() %>%
-      dplyr::mutate(kcum_prob_TP = ifelse((!!rlang::sym(fc_column) > fc_median.tp & !!rlang::sym(expr_column) > expr_median.tp),
+      dplyr::mutate(kcum_prob_TP = ifelse(!!rlang::sym(fc_column) > fc_median.tp,
                                    1 - kcum_prob_TP, kcum_prob_TP),
-             kcum_prob_FP = ifelse((!!rlang::sym(fc_column) > fc_median.fp & !!rlang::sym(expr_column) > expr_median.fp),
+                    kcum_prob_FP = ifelse(!!rlang::sym(fc_column) > fc_median.fp,
                                    1 - kcum_prob_FP, kcum_prob_FP)) %>%
       dplyr::ungroup() %>%
       # Calculate Bayes factors.
