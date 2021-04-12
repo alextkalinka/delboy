@@ -50,7 +50,7 @@ svm_false_positive_classification <- function(data, kernel){
       pred_fp <- stats::predict(svm_val, data_svm)
       data.grid <- expand.grid(abs_log2FoldChange = seq(from=0,to=4,length=400),
                                log10_baseExpr = seq(from=0,to=5,length=400)) %>%
-        dplyr::mutate(Predicted_FP = stats::predict(svm_val, as.matrix(.)))
+        dplyr::mutate(Predicted_FP = as.numeric(stats::predict(svm_val, as.matrix(.))))
     }
 
     data_svm %<>%
