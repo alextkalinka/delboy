@@ -4,15 +4,17 @@
 \alias{svm_false_positive_classification}
 \title{svm_false_positive_classification}
 \usage{
-svm_false_positive_classification(data, kernel)
+svm_false_positive_classification(data, grid_fc_dens = 600, grid_ex_dens = 800)
 }
 \arguments{
 \item{data}{A data frame as produced by \code{delboy::make_delboy_hit_comparison_table}.}
 
-\item{kernel}{A character string naming the kernel type: \code{linear}, \code{polynomial}, \code{radial}.}
+\item{grid_fc_dens}{An integer giving the density of grid sampling for the decision boundary on the fold change axis. Defaults to 600.}
+
+\item{grid_ex_dens}{An integer giving the density of grid sampling for the decision boundary on the expression axis. Defaults to 800.}
 }
 \value{
-A list containing the SVM fit, a data frame containing predicted false positive status, and a data frame produced by \code{expand.grid} for use in \code{ggplot2::geom_contour}.
+A list containing the SVM fit, a data frame containing predicted false positive status, and a data frame produced by \code{expand.grid}.
 }
 \description{
 Performs an SVM to learn the decision boundary between false and true positives for validation data.

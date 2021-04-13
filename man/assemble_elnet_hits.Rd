@@ -4,7 +4,7 @@
 \alias{assemble_elnet_hits}
 \title{assemble_elnet_hits}
 \usage{
-assemble_elnet_hits(data, deseq2_res, svm_fit)
+assemble_elnet_hits(data, deseq2_res, svm_fit, svm_method)
 }
 \arguments{
 \item{data}{Output from \code{delboy::combine_validation_original_hits}.}
@@ -12,6 +12,8 @@ assemble_elnet_hits(data, deseq2_res, svm_fit)
 \item{deseq2_res}{Output from \code{delboy::run_deseq2}.}
 
 \item{svm_fit}{Output from \code{delboy::svm_false_positive_classification}.}
+
+\item{svm_method}{A character string naming the SVM method. Can be one of \code{e1071} or \code{svmpath}.}
 }
 \value{
 A data frame.
