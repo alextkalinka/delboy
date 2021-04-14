@@ -17,8 +17,8 @@ extract_grid_decision_boundary <- function(grid){
                        min_tp_fc = ifelse(any(Predicted_FP == 0),
                                           min(abs_log2FoldChange[Predicted_FP == 0]),
                                           0),
-                       abs_log2FoldChange.DB = ifelse(max_fp_fc > min_tp_fc, min_tp_fc, max_fp_fc)) %>%
-      dplyr::filter(abs_log2FoldChange.DB != 0) %>%
+                       abs_log2FoldChange = ifelse(max_fp_fc > min_tp_fc, min_tp_fc, max_fp_fc)) %>%
+      dplyr::filter(abs_log2FoldChange != 0) %>%
       dplyr::ungroup() %>%
       dplyr::select(-max_fp_fc, -min_tp_fc)
     return(db)

@@ -13,6 +13,8 @@
 #' @importFrom dplyr %>% filter select mutate
 #' @importFrom magrittr %<>%
 #' @importFrom stats predict
+#' @importFrom grDevices chull
+#' @importFrom smoothr smooth_ksmooth
 svm_false_positive_classification <- function(data, grid_fc_dens = 600, grid_ex_dens = 800){
   tryCatch({
     data_svm <- data %>%
@@ -55,9 +57,14 @@ svm_false_positive_classification <- function(data, grid_fc_dens = 600, grid_ex_
         dplyr::mutate(Predicted_FP = as.numeric(as.character(stats::predict(svm_val, as.matrix(.)))))
     }
 
-    # 2. Extract and smooth the decision boundary.
+    # 2. Extract and smooth the decision boundary using convex hull points.
     db <- delboy::extract_grid_decision_boundary(data.grid)
-    
+    db.chull <- grDevices::chull(as.matrix(db))
+    db.ks <- smoothr::smooth_ksmooth(as.matrix(db[db.chull,]))
+    db.chull <- grDevices::chull(db.ks)
+    db_sm <- as.data.frame(db.ks[db.chull,])
+    colnames(db_sm) <- colnames(db)
+    db_sm <- delboy::smooth_decision_boundary(db_sm, 1)
     
     # 3. Predict FP-TP status for validation data.
     data_svm %<>%
@@ -67,5 +74,6 @@ svm_false_positive_classification <- function(data, grid_fc_dens = 600, grid_ex_
   },
   error = function(e) stop(paste("unable to perform SVM on validation data:",e))
   )
-  return(list(svm_validation_fit = svm_val, data_svm = data_svm, grid = data.grid, svm.method = svm_method))
+  return(list(svm_validation_fit = svm_val, data_svm = data_svm, grid = data.grid, decision_boundary = db_sm,
+              svm.method = svm_method))
 }
