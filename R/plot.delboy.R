@@ -21,7 +21,7 @@
                           filter(hit_type!="False_Negative"),
                  ggplot2::aes(log10_baseExpr, abs_log2FoldChange, color=hit_type)) +
     ggplot2::geom_line(data = db,
-                       ggplot2::aes(log10_baseExpr, abs_log2FoldChange)) +
+                       ggplot2::aes(log10_baseExpr, abs_log2FoldChange), size = 0.8) +
     ggplot2::facet_grid(~data_type) +
     ggplot2::coord_cartesian(xlim = c(xlim_l, xlim_u),
                              ylim = c(ylim_l, ylim_u))
@@ -52,7 +52,7 @@
     ggplot2::geom_point(data = data,
                         ggplot2::aes(log10_baseExpr, abs_log2FoldChange, color=hit_type)) +
     ggplot2::geom_line(data = db,
-                       ggplot2::aes(log10_baseExpr, abs_log2FoldChange)) +
+                       ggplot2::aes(log10_baseExpr, abs_log2FoldChange), size = 0.8) +
     ggplot2::coord_cartesian(xlim = c(xlim_l, xlim_u),
                              ylim = c(ylim_l, ylim_u))
   print(pl)

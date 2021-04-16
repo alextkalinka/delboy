@@ -64,7 +64,7 @@ svm_false_positive_classification <- function(data, grid_fc_dens = 600, grid_ex_
     db.chull <- grDevices::chull(db.ks)
     db_sm <- as.data.frame(db.ks[db.chull,])
     colnames(db_sm) <- colnames(db)
-    db_sm <- delboy::smooth_decision_boundary(db_sm, 1)
+    db_sm <- delboy::smooth_decision_boundary(db_sm)
     
     # 3. Predict FP-TP status for validation data.
     data_svm %<>%
