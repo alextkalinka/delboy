@@ -9,7 +9,9 @@
   sens <- 100*(num_true_calls)/length(lfc)
   prec <- 100*(num_true_calls)/(total_calls)
   fdr <- 100-prec
-  return(data.frame(Algorithm = algorithm, Num_true_calls = num_true_calls,
+  return(data.frame(Algorithm = algorithm, 
+                    Total_diff_exp = length(lfc), 
+                    Num_true_calls = num_true_calls,
                     Sensitivity.percent = sens,
                     Num_false_calls = total_calls - num_true_calls,
                     Precision.percent = prec, FDR.percent = fdr))

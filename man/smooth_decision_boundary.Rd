@@ -4,12 +4,10 @@
 \alias{smooth_decision_boundary}
 \title{smooth_decision_boundary}
 \usage{
-smooth_decision_boundary(db, min_expr, entry_point = 1.25)
+smooth_decision_boundary(db, entry_point = 1.25)
 }
 \arguments{
 \item{db}{A data frame providing the TP-FP decision boundary for \code{log10_baseExpr} and \code{abs_log2FoldChange} columns.}
-
-\item{min_expr}{A real number giving the \code{log_10} of the minimum expression level.}
 
 \item{entry_point}{Internal point to start smoothing in terms of \code{log10_baseExpr}. Defaults to 1.25.}
 }

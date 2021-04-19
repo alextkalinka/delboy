@@ -3,12 +3,12 @@
 #' Smoothes the fold-change expression decision boundary such that it is a convex, monotonically decreasing function of expression level.
 #' 
 #' @param db A data frame providing the TP-FP decision boundary for `log10_baseExpr` and `abs_log2FoldChange` columns.
-#' @param min_log10_exp The minimum log10 expression level for the data.
 #' @param entry_point Internal point to start smoothing in terms of `log10_baseExpr`. Defaults to 1.25.
 #' @return A data frame of smoothed values
 #' @export
 #' @importFrom dplyr filter arrange desc
-smooth_decision_boundary <- function(db, min_log10_exp, entry_point = 1.25){
+#' @importFrom stats smooth.spline predict
+smooth_decision_boundary <- function(db, entry_point = 1.25){
   tryCatch({
     db_low <- db %>%
       dplyr::filter(log10_baseExpr <= entry_point) %>%
@@ -36,13 +36,13 @@ smooth_decision_boundary <- function(db, min_log10_exp, entry_point = 1.25){
     db$abs_log2FoldChange[match(db_high$log10_baseExpr, db$log10_baseExpr)] <- db_high$abs_log2FoldChange
     
     # 2. Low-end values.
-    diffs <- NULL
-    for(i in 1:nrow(db_low)){
-      if(i == 1) next
-      diffs <- append(diffs, (db_low$abs_log2FoldChange[i] - db_low$abs_log2FoldChange[i-1])/(db_low$log10_baseExpr[i] - db_low$log10_baseExpr[i-1]))
+    if(max(db_low$abs_log2FoldChange) < 4){
+      spl_fit <- stats::smooth.spline(db_low$abs_log2FoldChange, db_low$log10_baseExpr)
+      db_low_expr <- stats::predict(spl_fit, seq(max(db_low$abs_log2FoldChange),4,0.02))
+      db %<>%
+        rbind(data.frame(log10_baseExpr = db_low_expr$y, 
+                         abs_log2FoldChange = db_low_expr$x))
     }
-    y_last <- -1*tail(diffs,1)*(tail(db_low$log10_baseExpr,1) + tail(db_low$abs_log2FoldChange,1))
-    db <- rbind(db, data.frame(log10_baseExpr = 0, abs_log2FoldChange = y_last))
     
     return(db)
   },

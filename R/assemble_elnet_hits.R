@@ -4,27 +4,21 @@
 #'
 #' @param data Output from `delboy::combine_validation_original_hits`.
 #' @param deseq2_res Output from `delboy::run_deseq2`.
-#' @param svm_fit Output from `delboy::svm_false_positive_classification`.
-#' @param svm_method A character string naming the SVM method. Can be one of `e1071` or `svmpath`.
+#' @param decision_boundary A data frame providing co-ordinates for the SVM-learned decision boundary for FPs.
 #'
 #' @return A data frame.
 #' @export
 #' @importFrom dplyr %>% mutate filter select arrange desc
 #' @importFrom magrittr %<>%
 #' @importFrom stats predict
-assemble_elnet_hits <- function(data, deseq2_res, svm_fit, svm_method){
+assemble_elnet_hits <- function(data, deseq2_res, decision_boundary){
   tryCatch({
     data_svm <- data %>%
       dplyr::filter(hit_type == "Positive") %>%
       dplyr::select(id, log10_baseExpr, abs_log2FoldChange)
-    if(svm_method == "e1071"){
-      pred.fp <- stats::predict(svm_fit, as.matrix(data_svm %>% select(-id)))
-    }else if(svm_method == "svmpath"){
-      pred.fp <- stats::predict(svm_fit, as.matrix(data_svm %>% select(-id)),
-                                lambda = tail(svm_fit$lambda,1),
-                                type = "class")
-      pred.fp <- ifelse(pred.fp == -1,0,1)
-    }
+    
+    pred.fp <- delboy::predict_FP_delboy(data_svm, decision_boundary)$pred_FP
+    
     data_svm %<>%
       dplyr::mutate(fp = pred.fp)
 

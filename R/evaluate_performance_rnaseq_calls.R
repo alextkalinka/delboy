@@ -21,6 +21,7 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
     # 1. Prep for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
 
+    all_val_hits <- NULL
     all_val_perf <- NULL
     # Multiple val samples to improve SVM estimate.
     for(i in 1:3){
@@ -70,20 +71,22 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
       delboy_hit_df <- delboy::make_delboy_hit_comparison_table(elnet.lr,
                                                                 deseq2_res,
                                                                 lfc_samp)
-      all_val_perf <- rbind(all_val_perf, delboy_hit_df)
+      all_val_hits <- rbind(all_val_hits, delboy_hit_df)
+      all_val_perf <- rbind(all_val_perf, perf_stats)
     }
     # 13. SVM for false positive classification.
-    svm_validation <- delboy::svm_false_positive_classification(all_val_perf)
-    # 13. Calculate Bayes Factors for False Positive classification.
+    svm_validation <- delboy::svm_false_positive_classification(all_val_hits)
 
-
-    # 14. Build return object of class 'delboy_performance'.
+    # 14. Performance stats.
+    pstats_summ <- delboy::calculate_perf_stats(all_val_perf)
+    
+    # 15. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_samp,
                 data.bthin = data.bthin,
                 elnet_lr_res = elnet.lr,
                 deseq2_res = deseq2_res,
-                delboy_hit_table = all_val_perf,
-                performance_stats = perf_stats,
+                delboy_hit_table = all_val_hits,
+                performance_stats = pstats_summ,
                 svm_validation = svm_validation)
     class(ret) <- "delboy_performance"
   },
