@@ -26,7 +26,7 @@ run_delboy(
 
 \item{gene_column}{A character string naming the column containing gene names.}
 
-\item{batches}{A character vector identifying the batch structure of the experiment. The length must equal \code{length(group_1) + length(group_2)}. If \code{NULL}, there are no batches, or batches have already been corrected. Defaults to \code{NULL}.}
+\item{batches}{A character vector identifying the batch structure of the experiment - the order should match the order of the sample columns in the input data. The length must equal \code{length(group_1) + length(group_2)}. If \code{NULL}, there are no batches, or batches have already been corrected. Defaults to \code{NULL}.}
 
 \item{batch_corr_method}{A character string naming the batch correction method. Can be one of \code{combat_np} (non-parametric) or \code{combat_p} (parametric). Defaults to \code{combat_np}. Ignored if \code{batches} is \code{NULL}.}
 

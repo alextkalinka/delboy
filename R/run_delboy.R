@@ -7,7 +7,7 @@
 #' @param group_2 A character string naming the columns that belong to group 2.
 #' @param filter_cutoff A numerical value indicating the cutoff below which (summed across all replicates) a gene (or gRNA) will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.
 #' @param gene_column A character string naming the column containing gene names.
-#' @param batches A character vector identifying the batch structure of the experiment. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`.
+#' @param batches A character vector identifying the batch structure of the experiment - the order should match the order of the sample columns in the input data. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`.
 #' @param batch_corr_method A character string naming the batch correction method. Can be one of `combat_np` (non-parametric) or `combat_p` (parametric). Defaults to `combat_np`. Ignored if `batches` is `NULL`.
 #' @param bcorr_data_validation `NULL` if no batch corrected data is already available. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available).
 #'
@@ -49,6 +49,11 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
       stop(paste("'bcorr_data_validation' should be a data frame, instead got",
                  class(bcorr_data_validation)))
   }
+  if(!is.null(batches)){
+    if(length(batches) != length(group_1) + length(group_2))
+      stop(paste("the number of batched samples must equal the number of total samples across the two groups:\n",
+                 "expected",length(group_1) + length(group_2),"but got",length(batches)))
+  }
 
   ### 2B. Remove any irrelevant columns.
   data <- data[,c(gene_column, group_1, group_2)]
@@ -64,7 +69,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   ### 4. Batch correction.
   if(!is.null(batches)){
     cat("Batch correcting data...\n")
-    data <- delboy::batch_correct(data, group_1, group_2, gene_column)
+    data <- delboy::batch_correct(data, batches, gene_column)
   }
 
   ### 5. Estimate parameters for performance evaluation.
@@ -77,6 +82,8 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   non.null <- suppressWarnings(delboy::estimate_number_non_nulls(deseq2_res$pvalue))
   cat(non.null$num.non_null,"\n")
   # Sanity-check non-null estimate.
+  if(non.null$num.non_null == 0) stop("there are zero non-null cases estimated for this dataset")
+  
   if(non.null$num.non_null < 40){
     cat("Low estimate of number of non-null cases, setting to 40\n")
     non.null$num.non_null <- 40
@@ -90,6 +97,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   ## 6A. Batch-correct real signal to create true-negative dataset.
   if(is.null(bcorr_data_validation)){
     cat("Batch correction to create signal-corrected data for validation...\n")
+    
     data.bc <- delboy::batch_correct(data, group_1, group_2, gene_column)
   }else{
     data.bc <- bcorr_data_validation
@@ -127,9 +135,9 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   ### 11. Update performance stats after excluding predicted False Positives.
   pstats_excl_pred_fp <- delboy::exclude_predicted_FP_perf(perf_eval$svm_validation$data_svm,
                                                            perf_eval$performance_stats,
-                                                           non.null$num.non_null)
+                                                           non.null$num.non_null*3)
 
-  ### 12. Build object of class 'delboy'.
+  ### 12. Build return object of class 'delboy'.
   ret <- list(non_null = list(nonnull_number = non.null,
                               nonnull_lfc = lfdr.lfc),
               performance_eval = perf_eval,

@@ -17,5 +17,5 @@ svm_false_positive_classification(data, grid_fc_dens = 600, grid_ex_dens = 800)
 A list containing the SVM fit, a data frame containing predicted false positive status, and a data frame produced by \code{expand.grid}.
 }
 \description{
-Performs an SVM to learn the decision boundary between false and true positives for validation data.
+Utilises an SVM to learn the decision boundary between false and true positives for validation data.
 }

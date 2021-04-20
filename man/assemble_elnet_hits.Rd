@@ -4,16 +4,14 @@
 \alias{assemble_elnet_hits}
 \title{assemble_elnet_hits}
 \usage{
-assemble_elnet_hits(data, deseq2_res, svm_fit, svm_method)
+assemble_elnet_hits(data, deseq2_res, decision_boundary)
 }
 \arguments{
 \item{data}{Output from \code{delboy::combine_validation_original_hits}.}
 
 \item{deseq2_res}{Output from \code{delboy::run_deseq2}.}
 
-\item{svm_fit}{Output from \code{delboy::svm_false_positive_classification}.}
-
-\item{svm_method}{A character string naming the SVM method. Can be one of \code{e1071} or \code{svmpath}.}
+\item{decision_boundary}{A data frame providing co-ordinates for the SVM-learned decision boundary for FPs.}
 }
 \value{
 A data frame.
