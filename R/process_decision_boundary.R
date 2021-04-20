@@ -19,7 +19,7 @@ process_decision_boundary <- function(data.grid){
     db.chull <- grDevices::chull(db.ks)
     db_sm <- as.data.frame(db.ks[db.chull,])
     colnames(db_sm) <- colnames(db)
-    # Smooth separately at upper and lower ends.
+    # Ensure DB is monotonically decreasing function of expression.
     db_sm <- delboy::smooth_decision_boundary(db_sm)
     db.chull <- grDevices::chull(as.matrix(db_sm))
     db_sm <- db_sm[db.chull,]

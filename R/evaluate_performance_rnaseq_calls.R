@@ -74,13 +74,17 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
       all_val_hits <- rbind(all_val_hits, delboy_hit_df)
       all_val_perf <- rbind(all_val_perf, perf_stats)
     }
-    # 13. SVM for false positive classification.
-    svm_validation <- delboy::svm_false_positive_classification(all_val_hits)
-
-    # 14. Performance stats.
+    # 13. Performance stats.
     pstats_summ <- delboy::calculate_perf_stats(all_val_perf)
     
-    # 15. Build return object of class 'delboy_performance'.
+    # 14. Are there enough False Positives for SVM classification?
+    if(pstats_summ$Num_false_calls[pstats_summ$Algorithm == "delboy"] < 10)
+      warning("* less than 10 False Positive cases in validation data *")
+    
+    # 15. SVM for false positive classification.
+    svm_validation <- delboy::svm_false_positive_classification(all_val_hits)
+    
+    # 16. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_samp,
                 data.bthin = data.bthin,
                 elnet_lr_res = elnet.lr,

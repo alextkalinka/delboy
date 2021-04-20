@@ -11,7 +11,6 @@ run_delboy(
   filter_cutoff,
   gene_column,
   batches = NULL,
-  batch_corr_method = "combat_np",
   bcorr_data_validation = NULL
 )
 }
@@ -26,11 +25,9 @@ run_delboy(
 
 \item{gene_column}{A character string naming the column containing gene names.}
 
-\item{batches}{A character vector identifying the batch structure of the experiment - the order should match the order of the sample columns in the input data. The length must equal \code{length(group_1) + length(group_2)}. If \code{NULL}, there are no batches, or batches have already been corrected. Defaults to \code{NULL}.}
+\item{batches}{A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal \code{length(group_1) + length(group_2)}. If \code{NULL}, there are no batches, or batches have already been corrected. Defaults to \code{NULL}.}
 
-\item{batch_corr_method}{A character string naming the batch correction method. Can be one of \code{combat_np} (non-parametric) or \code{combat_p} (parametric). Defaults to \code{combat_np}. Ignored if \code{batches} is \code{NULL}.}
-
-\item{bcorr_data_validation}{\code{NULL} if no batch corrected data is already available. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available).}
+\item{bcorr_data_validation}{\code{NULL} if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to \code{NULL}.}
 }
 \value{
 An object of class \code{delboy}. Access this object using \code{delboy::hits}, \code{delboy::plot.delboy}, \code{delboy::get_performance_stats}, and \code{delboy::get_deseq2_results}.

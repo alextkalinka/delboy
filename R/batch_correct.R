@@ -8,7 +8,7 @@
 #'
 #' @return A data frame of batch-corrected data (can contain negative values).
 #' @importFrom sva ComBat
-#' @importFrom dplyr mutate select everything
+#' @importFrom dplyr %>% mutate select everything
 #' @importFrom rlang := !! sym
 #' @export
 batch_correct <- function(data, batches, gene_column){
