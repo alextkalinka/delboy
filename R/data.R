@@ -15,11 +15,11 @@
 NULL
 
 
-#' E2
+#' E2H
 #'
 #' A sample of signal-corrected expression data from a bulk RNA experiment with signal added to a known set of genes.
 #'
-#' @name E2
+#' @name E2H
 #' @details A list with the following elements:
 #' * `data_bcorr`: A data frame of batch-corrected counts.
 #' * `lfc_samp`: A named vector of fold changes added to `data_bcorr` in which the names are gene names.
