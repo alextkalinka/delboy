@@ -25,6 +25,8 @@ batch_correct <- function(data, batches, gene_column){
     data.bc <- as.data.frame(data.bc) %>%
       dplyr::mutate(!!rlang::sym(gene_column) := rownames(.)) %>%
       dplyr::select(!!rlang::sym(gene_column), dplyr::everything())
+    
+    rownames(data.bc) <- NULL
   },
   error = function(e) stop(paste("unable to batch correct data:",e))
   )

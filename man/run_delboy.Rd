@@ -21,23 +21,23 @@ run_delboy(
 
 \item{group_2}{A character string naming the columns that belong to group 2.}
 
-\item{filter_cutoff}{A numerical value indicating the cutoff below which (summed across all replicates) a gene (or gRNA) will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.}
+\item{filter_cutoff}{A numerical value indicating the cutoff below which (summed across all replicates) a gene will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.}
 
 \item{gene_column}{A character string naming the column containing gene names.}
 
-\item{batches}{A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal \code{length(group_1) + length(group_2)}. If \code{NULL}, there are no batches, or batches have already been corrected. Defaults to \code{NULL}.}
+\item{batches}{A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal \code{length(group_1) + length(group_2)}. If \code{NULL}, there are no batches, or batches have already been corrected. Defaults to \code{NULL}. Batch correction will be conducted using \code{sva::ComBat} using non-parametric priors.}
 
-\item{bcorr_data_validation}{\code{NULL} if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to \code{NULL}.}
+\item{bcorr_data_validation}{\code{NULL} if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to \code{NULL}. Batch correction will be conducted using \code{sva::ComBat} using non-parametric priors.}
 }
 \value{
-An object of class \code{delboy}. Access this object using \code{delboy::hits}, \code{delboy::plot.delboy}, \code{delboy::get_performance_stats}, and \code{delboy::get_deseq2_results}.
+An object of class \code{delboy}. Access this object using \code{hits}, \code{plot.delboy}, \code{get_performance_stats}, and \code{get_deseq2_results}.
 }
 \description{
 Performs a differential-representation analysis using an elastic-net logistic regression approach for normalized count data that is split into two groups.
 }
 \references{
 \itemize{
-\item Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv.
+\item Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv \href{https://doi.org/10.1101/2020.10.15.340737}{10.1101/2020.10.15.340737}.
 \item Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
 }
 }

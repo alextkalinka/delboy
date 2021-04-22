@@ -5,19 +5,19 @@
 #' @param data A data frame containing normalized count data for two different groups and their replicates. Can be a path to a file. Ideally the counts will already have been normalized to Transcripts Per Million (TPM), using, for example, the bias-aware quantification methods employed by `salmon` (Patro et al. 2017).
 #' @param group_1 A character string naming the columns that belong to group 1.
 #' @param group_2 A character string naming the columns that belong to group 2.
-#' @param filter_cutoff A numerical value indicating the cutoff below which (summed across all replicates) a gene (or gRNA) will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.
+#' @param filter_cutoff A numerical value indicating the cutoff below which (summed across all replicates) a gene will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.
 #' @param gene_column A character string naming the column containing gene names.
-#' @param batches A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`.
-#' @param bcorr_data_validation `NULL` if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to `NULL`.
+#' @param batches A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
+#' @param bcorr_data_validation `NULL` if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
 #'
-#' @return An object of class `delboy`. Access this object using `delboy::hits`, `delboy::plot.delboy`, `delboy::get_performance_stats`, and `delboy::get_deseq2_results`.
+#' @return An object of class `delboy`. Access this object using `hits`, `plot.delboy`, `get_performance_stats`, and `get_deseq2_results`.
 #' @seealso \code{\link{hits}}, \code{\link{plot.delboy}}, \code{\link{get_performance_stats}}, \code{\link{get_deseq2_results}}
 #' @export
 #' @importFrom dplyr left_join filter select arrange
 #' @importFrom utils read.delim
 #' @md
 #' @references
-#' * Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv.
+#' * Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv [10.1101/2020.10.15.340737](https://doi.org/10.1101/2020.10.15.340737).
 #' * Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
 run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
                        batches = NULL, bcorr_data_validation = NULL){
@@ -74,6 +74,8 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
     # Re-order batches to match re-ordered sample columns in data input.
     batches <- batches[match(colnames(data)[2:ncol(data)], names(batches))]
     data <- delboy::batch_correct(data, batches, gene_column)
+  }else{
+    batches <- NA
   }
 
   ### 5. Estimate parameters for performance evaluation.
@@ -104,7 +106,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
     batches.v <- c(rep("group_1",length(group_1)),rep("group_2",length(group_2)))
     data.bc <- delboy::batch_correct(data, batches.v, gene_column)
   }else{
-    batches.v <- NULL
+    batches.v <- NA
     data.bc <- bcorr_data_validation
   }
 
@@ -144,10 +146,11 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
 
   ### 12. Build return object of class 'delboy'.
   ret <- list(data_input = data,
+              data_val_bcorr = data.bc,
               sample_info = data.frame(SampleName = colnames(data)[2:ncol(data)],
                                        Group = c(rep(1,length(group_1)),rep(2,length(group_2))),
-                                       Batch = ifelse(is.null(batches),NA,batches),
-                                       Batch.validation = ifelse(is.null(batches.v),NA,batches.v)),
+                                       Batch = batches,
+                                       Batch.validation = batches.v),
               non_null = list(nonnull_number = non.null,
                               nonnull_lfc = lfdr.lfc),
               performance_eval = perf_eval,
