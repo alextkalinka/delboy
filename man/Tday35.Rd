@@ -17,6 +17,6 @@ A list with the following elements:
 }
 }
 \references{
-Kelava et al. 2021. Male sex hormones increase production of excitatory neurons in human cerebral organoids. bioRxiv.
+Kelava et al. 2021. Male sex hormones increase production of excitatory neurons in human cerebral organoids. bioRxiv. \href{https://doi.org/10.1101/2020.10.24.353359}{10.1101/2020.10.24.353359}
 }
 \keyword{data}

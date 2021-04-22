@@ -11,7 +11,7 @@
 #' @md
 #' @docType data
 #' @keywords data
-#' @references Kelava et al. 2021. Male sex hormones increase production of excitatory neurons in human cerebral organoids. bioRxiv.
+#' @references Kelava et al. 2021. Male sex hormones increase production of excitatory neurons in human cerebral organoids. bioRxiv. [10.1101/2020.10.24.353359](https://doi.org/10.1101/2020.10.24.353359)
 NULL
 
 
@@ -23,6 +23,21 @@ NULL
 #' @details A list with the following elements:
 #' * `data_bcorr`: A data frame of batch-corrected counts.
 #' * `lfc_samp`: A named vector of fold changes added to `data_bcorr` in which the names are gene names.
+#' * `group_1`: The samples that belong to group 1.
+#' * `group_2`: The samples that belong to group 2.
+#' @md
+#' @docType data
+#' @keywords data
+NULL
+
+
+#' WZbNS
+#'
+#' A sample of signal-corrected expression data from a bulk RNA experiment with no added signal.
+#'
+#' @name WZbNS
+#' @details A list with the following elements:
+#' * `data_bcorr`: A data frame of batch-corrected counts.
 #' * `group_1`: The samples that belong to group 1.
 #' * `group_2`: The samples that belong to group 2.
 #' @md
