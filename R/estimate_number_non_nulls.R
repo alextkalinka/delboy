@@ -5,7 +5,7 @@
   tot <- sum(pick)
   # 28 breaks with 7576 pvals.
   num_breaks <- round(0.0037*tot)
-  if(num_breaks == 0)
+  if(num_breaks <= 1)
     num_breaks <- 7
   pv <- data.frame(pvalue = pval[pick]) %>%
     dplyr::mutate(pv_cuts = cut(pvalue, breaks = num_breaks)) %>%

@@ -31,6 +31,21 @@ NULL
 NULL
 
 
+#' WZb
+#'
+#' A sample of signal-corrected expression data from a bulk RNA experiment with signal added to a known set of genes.
+#'
+#' @name WZb
+#' @details A list with the following elements:
+#' * `data_bcorr`: A data frame of batch-corrected counts.
+#' * `group_1`: The samples that belong to group 1.
+#' * `group_2`: The samples that belong to group 2.
+#' @md
+#' @docType data
+#' @keywords data
+NULL
+
+
 #' WZbNS
 #'
 #' A sample of signal-corrected expression data from a bulk RNA experiment with no added signal.
