@@ -80,11 +80,27 @@
 .plotLFCNonNull <- function(delboy){
   data <- data.frame(log2FoldChange = abs(delboy$non_null$nonnull_lfc$non_null.lfc),
                      Density = delboy$non_null$nonnull_lfc$non_null.dens/length(delboy$non_null$nonnull_lfc$non_null.lfc))
-  ggplot2::ggplot(data, ggplot2::aes(log2FoldChange, Density)) +
+  pl <- ggplot2::ggplot(data, ggplot2::aes(log2FoldChange, Density)) +
     ggplot2::geom_line() +
     ggplot2::geom_vline(xintercept = 0, linetype="dashed", color="red") +
     ggplot2::geom_hline(yintercept = 0) +
     ggplot2::ggtitle("Estimated abs(logFC) distribution for non-null cases")
+  print(pl)
+}
+
+
+.plotLFCComp <- function(delboy){
+  # Remove predicted false positive samples from 'positive' set.
+  pred_fp <- (hits(delboy) %>%
+    dplyr::filter(Predicted_False_Positive == 1))$id
+  data <- delboy$hits_original_validation %>%
+    dplyr::filter(!(id %in% pred_fp & data_type == "Original"))
+  pl <- data %>%
+    ggplot2::ggplot(ggplot2::aes(hit_type, abs_log2FoldChange, color=hit_type)) +
+    ggplot2::geom_point() +
+    ggplot2::geom_boxplot(notch=T) +
+    ggplot2::ggtitle("Log Fold Change by Hit Type")
+  print(pl)
 }
 
 
@@ -93,21 +109,30 @@
 #' Plotting for `delboy` objects.
 #'
 #' @param x Output from `delboy::run_delboy`.
-#' @param type A character string naming the plot type: `fc_expr`, `fc_expr_FN`, `lfc_nonnull`, `deviance`, or `misclass`. Defaults to `fc_expr`.
+#' @param type A character string naming the plot type:
+#' * `lfc_expr` (default): log fold change as a function of expression for validation and original input data with false positive decision boundary.
+#' * `lfc_expr_FN`: same as `lfc_samp` but including false negatives.
+#' * `lfc_nonnull`: the estimated log fold change distribution for non-null cases.
+#' * `deviance`: binomial deviance for the elastic-net regression model.
+#' * `misclass`: mis-classification probabilities for the elastic-net regression model.
+#' * `lfc_comp`: log fold change boxplots for all hit types in both validation and original input data.
 #' @param xlim xlim values for x-axis. Defaults to `NULL` for `c(0.5,4)`.
 #' @param ylim xlim values for y-axis. Defaults to `NULL` for `c(0,1.5)`.
 #' @param ... Other arguments to be passed to `plot`.
 #'
 #' @return Used for side-effect of plotting.
+#' @md
 #' @export
 #' @importFrom ggplot2 ggplot aes facet_grid geom_point geom_line geom_vline geom_hline ggtitle coord_cartesian
-plot.delboy <- function(x, type = "fc_expr", xlim = NULL, ylim = NULL, ...){
+#' @importFrom dplyr %>% filter
+plot.delboy <- function(x, type = "lfc_expr", xlim = NULL, ylim = NULL, ...){
   if(!inherits(x,"delboy")) stop(paste("expecting an object of class 'delboy', got:",class(x)))
   switch(type,
-         fc_expr = .plotFCExpr(x, xlim, ylim),
-         fc_expr_FN = .plotFCExprFN(x, xlim, ylim),
+         lfc_expr = .plotFCExpr(x, xlim, ylim),
+         lfc_expr_FN = .plotFCExprFN(x, xlim, ylim),
          lfc_nonnull = .plotLFCNonNull(x),
          deviance = .plotBinDev(x),
-         misclass = .plotMisClass(x)
+         misclass = .plotMisClass(x),
+         lfc_comp = .plotLFCComp(x)
          )
 }

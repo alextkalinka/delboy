@@ -4,12 +4,20 @@
 \alias{plot.delboy}
 \title{plot.delboy}
 \usage{
-\method{plot}{delboy}(x, type = "fc_expr", xlim = NULL, ylim = NULL, ...)
+\method{plot}{delboy}(x, type = "lfc_expr", xlim = NULL, ylim = NULL, ...)
 }
 \arguments{
 \item{x}{Output from \code{delboy::run_delboy}.}
 
-\item{type}{A character string naming the plot type: \code{fc_expr}, \code{fc_expr_FN}, \code{lfc_nonnull}, \code{deviance}, or \code{misclass}. Defaults to \code{fc_expr}.}
+\item{type}{A character string naming the plot type:
+\itemize{
+\item \code{lfc_expr} (default): log fold change as a function of expression for validation and original input data with false positive decision boundary.
+\item \code{lfc_expr_FN}: same as \code{lfc_samp} but including false negatives.
+\item \code{lfc_nonnull}: the estimated log fold change distribution for non-null cases.
+\item \code{deviance}: binomial deviance for the elastic-net regression model.
+\item \code{misclass}: mis-classification probabilities for the elastic-net regression model.
+\item \code{lfc_comp}: log fold change boxplots for all hit types in both validation and original input data.
+}}
 
 \item{xlim}{xlim values for x-axis. Defaults to \code{NULL} for \code{c(0.5,4)}.}
 
