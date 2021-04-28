@@ -29,11 +29,11 @@
 }
 
 
-# Lots of small p-values can lead to an asymmetric gaussian with a long left tail when transformed.
-.symmetrise_p_vals <- function(pval){
-  pval_low <- pval[pval < 0.001]
-  pval[pval > 0.999] <- 1 - pval_low
-  return(pval)
+# Lots of small p-values can lead to an asymmetric Gaussian with a long left tail when transformed.
+.symmetrise_q_vals <- function(qval){
+  qval <- qval[!qval > 0]
+  qval <- append(qval, abs(qval))
+  return(qval)
 }
 
 
@@ -58,15 +58,10 @@ estimate_number_non_nulls <- function(pvals){
   pvals <- pvals[!is.na(pvals)]
   misfit <- FALSE
   tryCatch({
-    # If left tail longer than right, symmetrise:
-    mpv <- 1 - min(pvals)
-    if(mpv > max(pvals))
-      pval <- .symmetrise_p_vals(pvals)
-    
     # 1. Unaltered p-vals.
     misfit_1 <- FALSE
     withCallingHandlers({
-      qn <- .cleanup_qnorm(stats::qnorm(pvals))
+      qn <- .symmetrise_q_vals(.cleanup_qnorm(stats::qnorm(pvals)))
       lfdr_1 <- locfdr::locfdr(qn, plot = 0)
     },
     warning = function(w) misfit_1 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
@@ -76,7 +71,7 @@ estimate_number_non_nulls <- function(pvals){
       # 2. Smoothes p-vals (start=0.5).
       misfit_2 <- FALSE
       withCallingHandlers({
-        qn <- .cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals)))
+        qn <- .symmetrise_q_vals(.cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals))))
         lfdr_2 <- locfdr::locfdr(qn, plot = 0)
       },
       warning = function(w) misfit_2 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
@@ -86,7 +81,7 @@ estimate_number_non_nulls <- function(pvals){
         # 3. Smoothes p-vals (start=0.9).
         misfit_3 <- FALSE
         withCallingHandlers({
-          qn <- .cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals, start=0.9)))
+          qn <- .symmetrise_q_vals(.cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals, start=0.9))))
           lfdr_3 <- locfdr::locfdr(qn, plot = 0)
         },
         warning = function(w) misfit_3 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
