@@ -4,18 +4,14 @@
 \alias{batch_correct}
 \title{batch_correct}
 \usage{
-batch_correct(data, group_1, group_2, gene_column, method = "np")
+batch_correct(data, batches, gene_column)
 }
 \arguments{
 \item{data}{A data frame of normalized count data.}
 
-\item{group_1}{A character vector naming the columns that belong to group 1.}
-
-\item{group_2}{A character vector naming the columns that belong to group 2.}
+\item{batches}{A character vector naming the batches that the samples belong to.}
 
 \item{gene_column}{A character string naming the column containing gene names.}
-
-\item{method}{A character string indicating the \code{ComBat} method. Can be either \code{np} (non-parametric), or \code{p} (parametric). Defaults to \code{np}.}
 }
 \value{
 A data frame of batch-corrected data (can contain negative values).

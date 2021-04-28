@@ -41,13 +41,13 @@ my_hits <- delboy::hits(db)
 To plot validation performance next to original data showing the false-positive decision boundary (axes limits can be controlled using the `xlim` and `ylim` arguments):
 
 ```r
-plot(db, type = "fc_expr")
+plot(db, type = "lfc_expr")
 ```
 
 To visualize false negatives in the validation data relative to the false-positive decision boundary:
 
 ```r
-plot(db, type = "fc_expr_FN")
+plot(db, type = "lfc_expr_FN")
 ```
 
 To plot the distrubution of log-fold changes used for the validation data:

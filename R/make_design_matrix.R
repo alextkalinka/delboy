@@ -13,7 +13,8 @@ make_design_matrix <- function(group_1, group_2, random_treat = FALSE){
     num_samps <- length(group_1) + length(group_2)
     treat_cols <- rep(0,num_samps)
     if(!random_treat){
-      treat_cols[1:length(group_2)] <- 1
+      # Randomly sample the treatment columns.
+      treat_cols[sample(1:num_samps, length(group_2), replace = F)] <- 1
     }else{
       num_treat <- sample(2:(num_samps-2),1)
       treat_cols[sample(1:length(treat_cols), num_treat, replace=F)] <- 1
