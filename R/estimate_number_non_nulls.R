@@ -1,3 +1,4 @@
+# Helper functions.
 # Smooth p-values from DESeq2 to enable 'locfdr' estimate of non-null abundance.
 # DESeq2 sometimes produces an excess of p-values > 0.9 and this lumpiness in the p-value distribution can hamper the Gaussian mixture models used by locfdr.
 .smooth_pvals <- function(pval, start=0.5){
@@ -28,6 +29,14 @@
 }
 
 
+# Lots of small p-values can lead to an asymmetric gaussian with a long left tail when transformed.
+.symmetrise_p_vals <- function(pval){
+  pval_low <- pval[pval < 0.001]
+  pval[pval > 0.999] <- 1 - pval_low
+  return(pval)
+}
+
+
 .cleanup_qnorm <- function(qn){
   qn <- qn[!is.infinite(qn)]
   qn <- qn[!is.na(qn)]
@@ -49,6 +58,11 @@ estimate_number_non_nulls <- function(pvals){
   pvals <- pvals[!is.na(pvals)]
   misfit <- FALSE
   tryCatch({
+    # If left tail longer than right, symmetrise:
+    mpv <- 1 - min(pvals)
+    if(mpv > max(pvals))
+      pval <- .symmetrise_p_vals(pvals)
+    
     # 1. Unaltered p-vals.
     misfit_1 <- FALSE
     withCallingHandlers({
