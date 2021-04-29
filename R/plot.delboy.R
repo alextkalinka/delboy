@@ -104,6 +104,34 @@
 }
 
 
+.plotLocFDR_num_nonnull <- function(db){
+  zz <- db$non_null$nonnull_number$qvals
+  z.2 <- db$non_null$nonnull_number$locfdr$z.2
+  f <- db$non_null$nonnull_number$locfdr$mat[,"f"]
+  f0 <- db$non_null$nonnull_number$locfdr$mat[,"f0"]
+  p0 <- db$non_null$nonnull_number$locfdr$fp0[,"p0"]
+  fd <- db$non_null$nonnull_number$locfdr$mat[,"fdr"]
+  # Recapitulating 'locfdr' plot.
+  bre <- 120
+  lo <- min(zz)
+  up <- max(zz)
+  zzz <- pmax(pmin(zz, up), lo)
+  breaks <- seq(lo, up, length = bre)
+  zh <- hist(zzz, breaks = breaks, plot = F)
+  x <- (breaks[-1] + breaks[ - length(breaks)])/2
+  yall <- y <- zh$counts
+  K <- length(y)
+  # Plot.
+  hist(zzz, breaks = breaks, xlab = " ")
+  ################### make yt positive ##############
+  yt <- pmax(yall * (1 - fd), 0)
+  for(k in 1:K)
+    lines(c(x[k], x[k]), c(0, yt[k]), lwd = 2, col = 6)
+  lines(x, f, lwd = 3, col = 3)
+  lines(x, p0*f0, lwd = 2, lty = 2, col = 4)
+}
+
+
 #' plot.delboy
 #'
 #' Plotting for `delboy` objects.

@@ -135,6 +135,11 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   hits_orig_val <- delboy::combine_validation_original_hits(elnet.lr, deseq2_res,
                                                             perf_eval$delboy_hit_table)
 
+  # Do we have any hits?
+  #if(sum(hits_orig_val$hit_type == "Positive") == 0)
+  #  stop("* No hits found in elastic-net regression *")
+return(list(non_null = list(nonnull_number = non.null,
+                            nonnull_lfc = lfdr.lfc)))
   ### 10. Create final Elnet hit table.
   elnet_hits <- delboy::assemble_elnet_hits(hits_orig_val, deseq2_res,
                                             perf_eval$svm_validation$decision_boundary)

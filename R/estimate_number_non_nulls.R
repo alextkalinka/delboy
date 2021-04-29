@@ -109,5 +109,5 @@ estimate_number_non_nulls <- function(pvals){
   },
   error = function(e) stop(paste("unable to estimate number of non-nulls:",e))
   )
-  return(list(num.non_null = num.non_null, misfit = misfit))
+  return(list(num.non_null = num.non_null, misfit = misfit, qvals = qn, locfdr = lfdr))
 }
