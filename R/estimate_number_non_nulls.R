@@ -61,53 +61,77 @@ estimate_number_non_nulls <- function(pvals){
     # 1. Unaltered p-vals.
     misfit_1 <- FALSE
     withCallingHandlers({
-      qn <- .symmetrise_q_vals(.cleanup_qnorm(stats::qnorm(pvals)))
+      qn <- .cleanup_qnorm(stats::qnorm(pvals))
       lfdr_1 <- locfdr::locfdr(qn, plot = 0)
     },
     warning = function(w) misfit_1 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
     )
-
+    
     if(is.character(misfit_1) & !grepl(" ",misfit_1)){
-      # 2. Smoothes p-vals (start=0.5).
+      # 2. Symmetrise transformed p-vals.
       misfit_2 <- FALSE
       withCallingHandlers({
-        qn <- .symmetrise_q_vals(.cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals))))
+        qn <- .symmetrise_q_vals(.cleanup_qnorm(stats::qnorm(pvals)))
         lfdr_2 <- locfdr::locfdr(qn, plot = 0)
       },
       warning = function(w) misfit_2 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
       )
 
       if(is.character(misfit_2) & !grepl(" ",misfit_2)){
-        # 3. Smoothes p-vals (start=0.9).
+        # 3. Smoothes p-vals (start=0.5).
         misfit_3 <- FALSE
         withCallingHandlers({
-          qn <- .symmetrise_q_vals(.cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals, start=0.9))))
+          qn <- .cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals)))
           lfdr_3 <- locfdr::locfdr(qn, plot = 0)
         },
         warning = function(w) misfit_3 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
         )
 
         if(is.character(misfit_3) & !grepl(" ",misfit_3)){
-          if(as.numeric(misfit_2) <= as.numeric(misfit_3)){
-            lfdr <- lfdr_2
-            misfit <- misfit_2
+          # 4. Smoothes p-vals (start=0.9).
+          misfit_4 <- FALSE
+          withCallingHandlers({
+            qn <- .cleanup_qnorm(stats::qnorm(.smooth_pvals(pvals, start=0.9)))
+            lfdr_4 <- locfdr::locfdr(qn, plot = 0)
+          },
+          warning = function(w) misfit_4 <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
+          )
+
+          if(is.character(misfit_4) & !grepl(" ",misfit_4)){
+            if(as.numeric(misfit_3) <= as.numeric(misfit_4)){
+              lfdr <- lfdr_3
+              misfit <- misfit_3
+              fit_type <- 3
+            }else{
+              lfdr <- lfdr_4
+              misfit <- misfit_4
+              fit_type <- 4
+            }
           }else{
-            lfdr <- lfdr_3
-            misfit <- misfit_3
+            lfdr <- lfdr_4
+            misfit <- misfit_4
+            fit_type <- 4
           }
         }else{
           lfdr <- lfdr_3
+          misfit <- misfit_3
+          fit_type <- 3
         }
       }else{
         lfdr <- lfdr_2
+        misfit <- misfit_2
+        fit_type <- 2
       }
     }else{
       lfdr <- lfdr_1
+      misfit <- misfit_1
+      fit_type <- 1
     }
 
     num.non_null <- round(sum(lfdr$mat[1:which(lfdr$mat[,11]==0)[1], 11]))
   },
   error = function(e) stop(paste("unable to estimate number of non-nulls:",e))
   )
-  return(list(num.non_null = num.non_null, misfit = misfit, qvals = qn, locfdr = lfdr))
+  return(list(num.non_null = num.non_null, original.num.non_null = num.non_null,
+              misfit = misfit, qvals = qn, locfdr = lfdr, fit_type = fit_type))
 }

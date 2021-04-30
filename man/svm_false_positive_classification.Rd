@@ -4,10 +4,17 @@
 \alias{svm_false_positive_classification}
 \title{svm_false_positive_classification}
 \usage{
-svm_false_positive_classification(data, grid_fc_dens = 600, grid_ex_dens = 800)
+svm_false_positive_classification(
+  data,
+  use_fn = FALSE,
+  grid_fc_dens = 600,
+  grid_ex_dens = 800
+)
 }
 \arguments{
 \item{data}{A data frame as produced by \code{delboy::make_delboy_hit_comparison_table}.}
+
+\item{use_fn}{Logical indicating whether false negatives should be used in confunction with any false positives for the decision boundary. Defaults to \code{FALSE}.}
 
 \item{grid_fc_dens}{An integer giving the density of grid sampling for the decision boundary on the fold change axis. Defaults to 600.}
 

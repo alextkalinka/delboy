@@ -109,8 +109,10 @@
   z.2 <- db$non_null$nonnull_number$locfdr$z.2
   f <- db$non_null$nonnull_number$locfdr$mat[,"f"]
   f0 <- db$non_null$nonnull_number$locfdr$mat[,"f0"]
-  p0 <- db$non_null$nonnull_number$locfdr$fp0[,"p0"]
+  p0 <- sum(f0)/sum(f)
   fd <- db$non_null$nonnull_number$locfdr$mat[,"fdr"]
+  title <- paste("locfdr: non-null estimate =",db$non_null$nonnull_number$original.num.non_null)
+  
   # Recapitulating 'locfdr' plot.
   bre <- 120
   lo <- min(zz)
@@ -122,7 +124,8 @@
   yall <- y <- zh$counts
   K <- length(y)
   # Plot.
-  hist(zzz, breaks = breaks, xlab = " ")
+  hist(zzz, breaks = breaks, xlab = "Gaussian_Inverse_CDF[p-value from DESeq2]",
+       main = title)
   ################### make yt positive ##############
   yt <- pmax(yall * (1 - fd), 0)
   for(k in 1:K)
@@ -144,6 +147,7 @@
 #' * `deviance`: binomial deviance for the elastic-net regression model.
 #' * `misclass`: mis-classification probabilities for the elastic-net regression model.
 #' * `lfc_comp`: log fold change boxplots for all hit types in both validation and original input data.
+#' * `locfdr`: `locfdr` plot for non-null estimation.
 #' @param xlim xlim values for x-axis. Defaults to `NULL` for `c(0.5,4)`.
 #' @param ylim xlim values for y-axis. Defaults to `NULL` for `c(0,1.5)`.
 #' @param ... Other arguments to be passed to `plot`.
@@ -153,6 +157,7 @@
 #' @export
 #' @importFrom ggplot2 ggplot aes facet_grid geom_point geom_line geom_vline geom_hline ggtitle coord_cartesian
 #' @importFrom dplyr %>% filter
+#' @importFrom graphics hist lines
 plot.delboy <- function(x, type = "lfc_expr", xlim = NULL, ylim = NULL, ...){
   if(!inherits(x,"delboy")) stop(paste("expecting an object of class 'delboy', got:",class(x)))
   switch(type,
@@ -161,6 +166,7 @@ plot.delboy <- function(x, type = "lfc_expr", xlim = NULL, ylim = NULL, ...){
          lfc_nonnull = .plotLFCNonNull(x),
          deviance = .plotBinDev(x),
          misclass = .plotMisClass(x),
-         lfc_comp = .plotLFCComp(x)
+         lfc_comp = .plotLFCComp(x),
+         locfdr = .plotLocFDR_num_nonnull(x)
          )
 }
