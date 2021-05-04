@@ -82,7 +82,7 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
       stop("* no true positives in validation data: unable to validate algorithms *")
     
     if(sum(all_val_hits$hit_type == "False_Positive") < 10){
-      cat("* less than 10 False Positive cases in validation data: using False Negatives for decision boundary *\n")
+      cat("* less than 10 False Positive cases in validation data: using lowest 75% of False Negatives *\n")
       use_fn <- TRUE
     }else{
       use_fn <- FALSE
