@@ -18,11 +18,19 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
     withCallingHandlers({
       fit.elnet <- glmnet::glmnet(data, factor(treat), family = "binomial", alpha = alpha)
       if(max.num_reps > 3){
-        fit.cv_dev <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
-                                    type.measure = "deviance")
+        dev_fits <- list()
+        for(i in 1:5){
+          dev_fits[[i]] <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
+                                      type.measure = "deviance")
+        }
+        lambdas <- unlist(lapply(dev_fits, function(x) x$lambda.min))
+        min_lambdas <- which(lambdas == min(lambdas, na.rm=T))[1]
+        fit.cv_dev <- dev_fits[[min_lambdas]]
         fit.cv_class <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
                                         type.measure = "class")
       }else{
+        dev_fits <- NA
+        lambdas <- NA
         fit.cv_dev <- NA
         fit.cv_class <- NA
       }
@@ -51,7 +59,9 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
                 genes.elnet = genes.elnet,
                 genes.up = genes.up,
                 genes.down = genes.down,
-                warnings = warn)
+                warnings = warn,
+                dev_fits = dev_fits,
+                dev_lambdas = lambdas)
     class(ret) <- "delboy_elnet"
   },
   error = function(e) stop(paste("unable to run Elastic-net logistic regression:",e))

@@ -136,8 +136,8 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
                                                             perf_eval$delboy_hit_table)
 
   # Do we have any hits?
-  #if(sum(hits_orig_val$hit_type == "Positive") == 0)
-  #  stop("* No hits found in elastic-net regression *")
+  if(sum(hits_orig_val$hit_type == "Positive") == 0)
+    stop("* No hits found in elastic-net regression *")
 
   ### 10. Create final Elnet hit table.
   elnet_hits <- delboy::assemble_elnet_hits(hits_orig_val, deseq2_res,
