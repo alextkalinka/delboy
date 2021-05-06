@@ -34,6 +34,7 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
         lambdas <- NA
         fit.cv_dev <- NA
         fit.cv_class <- NA
+        mdn_lambda <- NA
       }
     },
     warning = function(w) warn <<- append(warn,w)
