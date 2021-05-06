@@ -9,6 +9,7 @@
 #' @param num_non_null An integer value indicating the number of genes to add signal to.
 #' @param lfc A vector of logFC values for non-null cases.
 #' @param lfc_dens A vector of density estimates for the logFC values given in `lfc`.
+#' @param alpha The elastic-net regression penalty, between 0 and 1.
 #'
 #' @return An object of class `delboy_performance`.
 #' @export
@@ -16,7 +17,7 @@
 #' @importFrom dplyr select
 #' @importFrom rlang sym !!
 evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_column,
-                                              num_non_null, lfc, lfc_dens){
+                                              num_non_null, lfc, lfc_dens, alpha){
   tryCatch({
     # 1. Prep for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
@@ -62,7 +63,7 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
       # 10. Run Elastic-net logistic regression on bthin data.
       elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
                                                factor(data.elnet$treat),
-                                               alpha = 0.5)
+                                               alpha = alpha)
 
       # 11. Extract performance statistics.
       perf_stats <- delboy::perf_stats_rnaseq(elnet.lr, deseq2_res, lfc_samp)

@@ -9,6 +9,7 @@
 #' @param gene_column A character string naming the column containing gene names.
 #' @param batches A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
 #' @param bcorr_data_validation `NULL` if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
+#' @param alpha The elastic-net regression penalty, between 0 and 1. If `NULL` (default) this is chosen automatically.
 #'
 #' @return An object of class `delboy`. Access this object using `hits`, `plot.delboy`, `get_performance_stats`, and `get_deseq2_results`.
 #' @seealso \code{\link{hits}}, \code{\link{plot.delboy}}, \code{\link{get_performance_stats}}, \code{\link{get_deseq2_results}}
@@ -20,7 +21,7 @@
 #' * Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv [10.1101/2020.10.15.340737](https://doi.org/10.1101/2020.10.15.340737).
 #' * Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
 run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
-                       batches = NULL, bcorr_data_validation = NULL){
+                       batches = NULL, bcorr_data_validation = NULL, alpha = NULL){
   # Random samples taken.
   set.seed(1)
 
@@ -116,7 +117,8 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
     delboy::evaluate_performance_rnaseq_calls(data.bc, group_1, group_2, gene_column,
                                               non.null$num.non_null,
                                               lfdr.lfc$non_null.lfc,
-                                              lfdr.lfc$non_null.dens)
+                                              lfdr.lfc$non_null.dens,
+                                              alpha)
     )
 
   ### 7. Prep data for Elastic-net analysis.
@@ -127,7 +129,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   elnet.lr <- suppressWarnings(
     delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
                                    factor(data.elnet$treat),
-                                   alpha = 0.5)
+                                   alpha = alpha)
   )
 
   ### 9. Combine hits with validation hit table to aid analysis of false positives.
