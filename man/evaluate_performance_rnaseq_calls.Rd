@@ -9,9 +9,11 @@ evaluate_performance_rnaseq_calls(
   group_1,
   group_2,
   gene_column,
+  max.iter,
   num_non_null,
   lfc,
-  lfc_dens
+  lfc_dens,
+  alpha
 )
 }
 \arguments{
@@ -23,11 +25,15 @@ evaluate_performance_rnaseq_calls(
 
 \item{gene_column}{A character string naming the column containing gene names.}
 
+\item{max.iter}{An integer value indicating the maximum number of validation samples.}
+
 \item{num_non_null}{An integer value indicating the number of genes to add signal to.}
 
 \item{lfc}{A vector of logFC values for non-null cases.}
 
 \item{lfc_dens}{A vector of density estimates for the logFC values given in \code{lfc}.}
+
+\item{alpha}{The elastic-net regression penalty, between 0 and 1.}
 }
 \value{
 An object of class \code{delboy_performance}.

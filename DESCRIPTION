@@ -11,6 +11,7 @@ Description: Improves sensitivity for under-powered
     differential-expression experiments while controlling the FDR.
 License: MIT + file LICENSE
 Imports: 
+    combinat,
     DESeq2 (>= 1.28.1),
     dplyr (>= 1.0.0),
     e1071 (>= 1.7-3),

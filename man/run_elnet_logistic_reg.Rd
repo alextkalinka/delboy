@@ -11,7 +11,7 @@ run_elnet_logistic_reg(data, treat, alpha)
 
 \item{treat}{A factor vector grouping samples into one of at most two groups.}
 
-\item{alpha}{The elastic-net resgression penalty, between 0 and 1.}
+\item{alpha}{The elastic-net regression penalty, between 0 and 1.}
 }
 \value{
 An object of class \code{delboy_elnet}.
