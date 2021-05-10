@@ -17,6 +17,7 @@
 #' @importFrom seqgendiff thin_diff
 #' @importFrom dplyr select
 #' @importFrom rlang sym !!
+#' @importFrom progress progress_bar
 evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_column, max.iter,
                                               num_non_null, lfc, lfc_dens, alpha){
   tryCatch({
@@ -25,16 +26,23 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
 
     # 2. All combinations of treatment samples (preserving the number of treatment samples in original data [length(group_2)]).
     all_treat_comb <- delboy::all_combinations_treat_samples(c(group_1, group_2), length(group_2))
-    if(is.null(max.iter)){
-      num_treat_comb <- ncol(all_treat_comb)
+    if(!is.null(max.iter)){
+      num_val_combs <- min(max.iter, ncol(all_treat_comb))
+      all_treat_comb <- all_treat_comb[,1:num_val_combs]
     }else{
-      all_treat_comb <- all_treat_comb[,1:max.iter]
+      num_val_combs <- ncol(all_treat_comb)
     }
     
     all_val_hits <- NULL
     all_val_perf <- NULL
+    # Set up progress bar.
+    pb <- progress::progress_bar$new(
+      format = "  validating [:bar] :percent time left: :eta",
+      total = num_val_combs, clear = FALSE, width = 60)
+    pb$tick(0)
     # Multiple val samples to improve SVM estimate.
-    for(i in 1:ncol(all_treat_comb)){
+    for(i in 1:num_val_combs){
+      pb$tick()
       # 3. Sample logFC values for num_non_null cases.
       lfc_samp <- sample(lfc, num_non_null, prob = lfc_dens/sum(lfc_dens), replace = T)
 
@@ -109,7 +117,9 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
                 deseq2_res = deseq2_res,
                 delboy_hit_table = all_val_hits,
                 performance_stats = pstats_summ,
-                svm_validation = svm_validation)
+                svm_validation = svm_validation,
+                num_val_combinations = num_val_combs,
+                all_treat_combinations = all_treat_comb)
     class(ret) <- "delboy_performance"
   },
   error = function(e) stop(paste("unable to evaluate performance of delboy:",e))
