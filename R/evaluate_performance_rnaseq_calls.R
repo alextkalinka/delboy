@@ -26,9 +26,12 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
 
     # 2. All combinations of treatment samples (preserving the number of treatment samples in original data [length(group_2)]).
     all_treat_comb <- delboy::all_combinations_treat_samples(c(group_1, group_2), length(group_2))
+    tot_val_combs <- ncol(all_treat_comb)
     if(!is.null(max.iter)){
-      num_val_combs <- min(max.iter, ncol(all_treat_comb))
-      all_treat_comb <- all_treat_comb[,1:num_val_combs]
+      num_val_combs <- min(max.iter, tot_val_combs)
+      # Try to use maximally different sets of samples.
+      val_inds <- seq(1,tot_val_combs, by = ceiling(tot_val_combs/num_val_combs))
+      all_treat_comb <- all_treat_comb[,val_inds]
     }else{
       num_val_combs <- ncol(all_treat_comb)
     }
