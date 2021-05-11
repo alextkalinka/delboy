@@ -1,3 +1,15 @@
+# Helper functions.
+.db_message <- function(msg, color){
+  msg <- paste(msg,"\n",sep="")
+  switch(color,
+         blue = cat(crayon::blue(msg)),
+         red = cat(crayon::red(msg)),
+         green = cat(crayon::green(msg)),
+         magenta = cat(crayon::magenta(msg))
+         )
+}
+
+
 #' run_delboy
 #'
 #' Performs a differential-representation analysis using an elastic-net logistic regression approach for normalized count data that is split into two groups.
@@ -8,7 +20,7 @@
 #' @param filter_cutoff A numerical value indicating the cutoff below which (summed across all replicates) a gene will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.
 #' @param gene_column A character string naming the column containing gene names.
 #' @param batches A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
-#' @param max.iter An integer value indicating the maximum number of validation samples. `NULL` (default) indicates all sample combinations will be taken.
+#' @param max.iter An integer value indicating the maximum number of validation samples (default = 10). `NULL` indicates all sample combinations should be taken.
 #' @param bcorr_data_validation `NULL` if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
 #' @param alpha The elastic-net regression penalty, between 0 and 1. If `NULL` (default) this is chosen automatically.
 #'
@@ -17,17 +29,22 @@
 #' @export
 #' @importFrom dplyr left_join filter select arrange
 #' @importFrom utils read.delim
+#' @importFrom crayon blue red green magenta
 #' @md
 #' @references
 #' * Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv [10.1101/2020.10.15.340737](https://doi.org/10.1101/2020.10.15.340737).
 #' * Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
 run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
-                       batches = NULL, max.iter = NULL,
+                       batches = NULL, max.iter = 10,
                        bcorr_data_validation = NULL, alpha = NULL){
   # Random samples taken.
   set.seed(1)
 
   ### 1. Read data.
+  if(!is.null(max.iter)){
+    if(max.iter < 3) stop("'max.iter' < 3; at least 3 validation samples are required")
+  }
+  
   if(is.character(data)){
     tryCatch(
       data <- utils::read.delim(data, stringsAsFactors = F),
@@ -94,7 +111,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   if(non.null$num.non_null == 0) stop("there are zero non-null cases estimated for this dataset")
   
   if(non.null$num.non_null < 40){
-    cat("Low estimate of number of non-null cases, setting to 40\n")
+    .db_message("low estimate of number of non-null cases, setting to 40", "blue")
     non.null$num.non_null <- 40
   }
 

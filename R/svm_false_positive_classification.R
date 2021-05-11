@@ -70,6 +70,10 @@ svm_false_positive_classification <- function(data, use_fn = FALSE, grid_fc_dens
     # 2. Extract and smooth the decision boundary using convex hull points.
     db_sm <- delboy::process_decision_boundary(data.grid)
     
+    if(min(db_sm$abs_log2FoldChange, na.rm = T) < 0.05)
+      .db_message("low fold-change limit for the false positive decision boundary:\n consider using a higher 'max.iter' value to minimise the risk of false positives", 
+                  "blue")
+    
     # 3. Predict FP-TP status for validation data.
     pred_fp <- delboy::predict_FP_delboy(data_svm, db_sm)$pred_FP
     data_svm %<>%

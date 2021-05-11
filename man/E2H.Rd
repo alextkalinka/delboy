@@ -11,6 +11,7 @@ A sample of signal-corrected expression data from a bulk RNA experiment with sig
 A list with the following elements:
 \itemize{
 \item \code{data_bcorr}: A data frame of batch-corrected counts.
+\item \code{data_val_bcorr}: A data frame of signal-corrected counts.
 \item \code{lfc_samp}: A named vector of log-fold changes added to \code{data_bcorr} in which the names are gene names.
 \item \code{group_1}: The samples that belong to group 1.
 \item \code{group_2}: The samples that belong to group 2.

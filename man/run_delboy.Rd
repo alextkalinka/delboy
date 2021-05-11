@@ -11,7 +11,7 @@ run_delboy(
   filter_cutoff,
   gene_column,
   batches = NULL,
-  max.iter = NULL,
+  max.iter = 10,
   bcorr_data_validation = NULL,
   alpha = NULL
 )
@@ -29,7 +29,7 @@ run_delboy(
 
 \item{batches}{A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal \code{length(group_1) + length(group_2)}. If \code{NULL}, there are no batches, or batches have already been corrected. Defaults to \code{NULL}. Batch correction will be conducted using \code{sva::ComBat} using non-parametric priors.}
 
-\item{max.iter}{An integer value indicating the maximum number of validation samples. \code{NULL} (default) indicates all sample combinations will be taken.}
+\item{max.iter}{An integer value indicating the maximum number of validation samples (default = 10). \code{NULL} indicates all sample combinations should be taken.}
 
 \item{bcorr_data_validation}{\code{NULL} if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to \code{NULL}. Batch correction will be conducted using \code{sva::ComBat} using non-parametric priors.}
 

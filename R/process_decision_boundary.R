@@ -2,7 +2,7 @@
 #' 
 #' Extract and smooth a decision boundary along the axes of fold-change and expression such that fold change is a convex, monotonically decreasing function of expression level.
 #' 
-#' @param data.grid A grid of predicted true and false positives along the plane formed by fold change and expression.
+#' @param data.grid A grid of predicted true and false positives along the plane formed by absolute log fold change and log10 expression.
 #' 
 #' @return A data frame.
 #' @export

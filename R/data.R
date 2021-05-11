@@ -5,6 +5,7 @@
 #' @name Tday35
 #' @details A list with the following elements:
 #' * `data_bcorr`: A data frame of batch-corrected counts.
+#' * `data_val_bcorr`: A data frame of signal-corrected counts.
 #' * `lfc_samp`: A named vector of log-fold changes added to `data_bcorr` in which the names are gene names.
 #' * `group_1`: The samples that belong to group 1.
 #' * `group_2`: The samples that belong to group 2.
@@ -22,6 +23,7 @@ NULL
 #' @name E2H
 #' @details A list with the following elements:
 #' * `data_bcorr`: A data frame of batch-corrected counts.
+#' * `data_val_bcorr`: A data frame of signal-corrected counts.
 #' * `lfc_samp`: A named vector of log-fold changes added to `data_bcorr` in which the names are gene names.
 #' * `group_1`: The samples that belong to group 1.
 #' * `group_2`: The samples that belong to group 2.
@@ -38,6 +40,7 @@ NULL
 #' @name WZb
 #' @details A list with the following elements:
 #' * `data_bcorr`: A data frame of batch-corrected counts.
+#' * `data_val_bcorr`: A data frame of signal-corrected counts.
 #' * `lfc_samp`: A named vector of log-fold changes with genes as names.
 #' * `group_1`: The samples that belong to group 1.
 #' * `group_2`: The samples that belong to group 2.

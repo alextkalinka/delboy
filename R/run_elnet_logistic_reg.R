@@ -19,6 +19,7 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
       fit.elnet <- glmnet::glmnet(data, factor(treat), family = "binomial", alpha = alpha)
       if(max.num_reps > 3){
         dev_fits <- list()
+        # Multiple deviance fits to stabilise randomness in this algorithm.
         for(i in 1:5){
           dev_fits[[i]] <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
                                       type.measure = "deviance")
