@@ -133,7 +133,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   ## 6B. Performance evaluation.
   cat("Performance evaluation to validate results...\n")
   perf_eval <- suppressWarnings(
-    delboy::evaluate_performance_rnaseq_calls(data.bc, group_1, group_2, gene_column,
+    delboy::evaluate_performance_deg_calls(data.bc, group_1, group_2, gene_column,
                                               max.iter,
                                               non.null$num.non_null,
                                               lfdr.lfc$non_null.lfc,

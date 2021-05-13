@@ -1,4 +1,4 @@
-#' evaluate_performance_rnaseq_calls
+#' evaluate_performance_deg_calls
 #'
 #' Evaluates the performance of `delboy` on RNAseq data by comparison with `DESeq2` output on the original input data for an experiment, controlling for real signal, and adding known signal (using `seqgendiff`'s binomial-thinning approach) for a sampled number of genes from a logFC distribution with both the number and distribution chosen to match as closely as possible the signal in the real data.
 #'
@@ -18,7 +18,7 @@
 #' @importFrom dplyr select
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
-evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_column, max.iter,
+evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, max.iter,
                                               num_non_null, lfc, lfc_dens, alpha){
   tryCatch({
     # 1. Prep for seqgendiff.
@@ -85,9 +85,9 @@ evaluate_performance_rnaseq_calls <- function(data, group_1, group_2, gene_colum
       elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
                                                factor(data.elnet$treat),
                                                alpha = alpha)
-
+      
       # 12. Extract performance statistics.
-      perf_stats <- delboy::perf_stats_rnaseq(elnet.lr, deseq2_res, lfc_samp)
+      perf_stats <- delboy::perf_stats_deg(elnet.lr, deseq2_res, lfc_samp)
 
       # 13. Collate TP, FN, and FP into a data frame to aid comparisons.
       delboy_hit_df <- delboy::make_delboy_hit_comparison_table(elnet.lr,
