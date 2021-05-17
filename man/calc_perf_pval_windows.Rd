@@ -4,7 +4,13 @@
 \alias{calc_perf_pval_windows}
 \title{calc_perf_pval_windows}
 \usage{
-calc_perf_pval_windows(data, pval_column, gene_column, deg_genes)
+calc_perf_pval_windows(
+  data,
+  pval_column,
+  gene_column,
+  abs_lfc_column,
+  deg_genes
+)
 }
 \arguments{
 \item{data}{A data frame of DEG p-values.}
@@ -13,11 +19,13 @@ calc_perf_pval_windows(data, pval_column, gene_column, deg_genes)
 
 \item{gene_column}{A character string naming the gene column.}
 
+\item{abs_lfc_column}{A character string naming the abs log fold change column.}
+
 \item{deg_genes}{A character vector naming DEGs.}
 }
 \value{
 A data frame of performance estimates across the p-val thresholds.
 }
 \description{
-Calculates sensitivity and FDR across a progressively larger window of DEG p-values.
+Calculates sensitivity and FDR (after excluding predicted false positives) across a progressively larger window of DEG p-values.
 }

@@ -43,6 +43,7 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
       format = "  validating [:bar] :percent time left: :eta",
       total = num_val_combs, clear = FALSE, width = 60)
     pb$tick(0)
+    
     # Multiple val samples to improve SVM estimate.
     for(i in 1:num_val_combs){
       pb$tick()
