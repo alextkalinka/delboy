@@ -36,6 +36,7 @@
 calc_perf_pval_windows <- function(data, pval_column, gene_column, abs_lfc_column, deg_genes){
   tryCatch({
     data %<>%
+      dplyr::filter(!is.na(!! rlang::sym(pval_column))) %>%
       dplyr::arrange(!! rlang::sym(pval_column))
     num_tp <- length(deg_genes)
     sens <- fdr <- sens.excl <- fdr.excl <- pv <- NULL
@@ -65,7 +66,7 @@ calc_perf_pval_windows <- function(data, pval_column, gene_column, abs_lfc_colum
     }
     ret <- data.frame(pvalue = rep(pv,2), Sensitivity.percent = c(sens,sens.excl),
                       FDR.percent = c(fdr,fdr.excl), 
-                      type = c(rep("Full",length(pv)),rep("Excl_Pred_FP",length(pv))))
+                      type = c(rep("All",length(pv)),rep("Excl_Pred_FP",length(pv))))
     return(ret)
   },
   error = function(e) stop(paste("unable to calculate performance across p-value windows:",e))
