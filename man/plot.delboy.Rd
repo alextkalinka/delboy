@@ -17,6 +17,7 @@
 \item \code{deviance}: binomial deviance for the elastic-net regression model.
 \item \code{misclass}: mis-classification probabilities for the elastic-net regression model.
 \item \code{lfc_comp}: log fold change boxplots for all hit types in both validation and original input data.
+\item \code{locfdr}: \code{locfdr} plot for non-null estimation.
 }}
 
 \item{xlim}{xlim values for x-axis. Defaults to \code{NULL} for \code{c(0.5,4)}.}

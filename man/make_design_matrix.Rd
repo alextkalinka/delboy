@@ -4,12 +4,14 @@
 \alias{make_design_matrix}
 \title{make_design_matrix}
 \usage{
-make_design_matrix(group_1, group_2, random_treat = FALSE)
+make_design_matrix(group_1, group_2, treat_samps = NULL, random_treat = FALSE)
 }
 \arguments{
 \item{group_1}{A character vector naming the columns that belong to group 1.}
 
 \item{group_2}{A character vector naming the columns that belong to group 2.}
+
+\item{treat_samps}{A character vector indicating which samples are treatment samples. \code{NULL} (default) indicates they should be randomly samples (\code{length(group_2)}).}
 
 \item{random_treat}{Logical indicating whether the number of treatment samples should be a random number between 2 and \code{length(group_1) + length(group_2) - 2}, or not. Defaults to \code{FALSE} - there will be \code{length(group_2)} treatment samples.}
 }

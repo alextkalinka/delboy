@@ -4,7 +4,7 @@
 #'
 #' @param data A matrix of normalized, batch-corrected counts - samples as rows, genes as columns.
 #' @param treat A factor vector grouping samples into one of at most two groups.
-#' @param alpha The elastic-net resgression penalty, between 0 and 1.
+#' @param alpha The elastic-net regression penalty, between 0 and 1.
 #'
 #' @return An object of class `delboy_elnet`.
 #' @export
@@ -18,20 +18,31 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
     withCallingHandlers({
       fit.elnet <- glmnet::glmnet(data, factor(treat), family = "binomial", alpha = alpha)
       if(max.num_reps > 3){
-        fit.cv_dev <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
-                                    type.measure = "deviance")
+        dev_fits <- list()
+        # Multiple deviance fits to stabilise randomness in this algorithm.
+        for(i in 1:5){
+          dev_fits[[i]] <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
+                                      type.measure = "deviance")
+        }
+        lambdas <- unlist(lapply(dev_fits, function(x) x$lambda.min))
+        mdn_lambda <- median(lambdas, na.rm = T)
+        index_mdn_lambdas <- which(abs(lambdas - mdn_lambda) == min(abs(lambdas - mdn_lambda), na.rm=T))[1]
+        fit.cv_dev <- dev_fits[[index_mdn_lambdas]]
         fit.cv_class <- glmnet::cv.glmnet(data, factor(treat), family = "binomial", alpha = alpha,
                                         type.measure = "class")
       }else{
+        dev_fits <- NA
+        lambdas <- NA
         fit.cv_dev <- NA
         fit.cv_class <- NA
+        mdn_lambda <- NA
       }
     },
     warning = function(w) warn <<- append(warn,w)
     )
     # Extract non-zero coefficients at point where fit is best (lambda min).
     if(max.num_reps > 3){
-      genes.elnet <- stats::coef(fit.elnet, s = fit.cv_dev$lambda.min)
+      genes.elnet <- stats::coef(fit.elnet, s = mdn_lambda)
     }else{
       genes.elnet <- stats::coef(fit.elnet, s = utils::tail(fit.elnet$lambda,1))
     }
@@ -51,7 +62,10 @@ run_elnet_logistic_reg <- function(data, treat, alpha){
                 genes.elnet = genes.elnet,
                 genes.up = genes.up,
                 genes.down = genes.down,
-                warnings = warn)
+                warnings = warn,
+                dev_fits = dev_fits,
+                dev_lambdas = lambdas,
+                median_lambda_min = mdn_lambda)
     class(ret) <- "delboy_elnet"
   },
   error = function(e) stop(paste("unable to run Elastic-net logistic regression:",e))

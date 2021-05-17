@@ -18,7 +18,7 @@
 }
 
 
-#' perf_stats_rnaseq
+#' perf_stats_deg
 #'
 #' Extracts performance stats for differential expression calls made by `delboy` and `DESeq2`.
 #'
@@ -31,7 +31,7 @@
 #' @export
 #' @importFrom magrittr %<>%
 #' @importFrom dplyr filter %>%
-perf_stats_rnaseq <- function(delboy_res, deseq2_res, lfc_samp, padj_cutoff = 0.1){
+perf_stats_deg <- function(delboy_res, deseq2_res, lfc_samp, padj_cutoff = 0.1){
   tryCatch({
     # delboy stats.
     delboy_stats <- .collate_stats(lfc_samp, delboy_res$genes.up, delboy_res$genes.down, "delboy")

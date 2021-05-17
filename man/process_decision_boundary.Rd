@@ -7,7 +7,7 @@
 process_decision_boundary(data.grid)
 }
 \arguments{
-\item{data.grid}{A grid of predicted true and false positives along the plane formed by fold change and expression.}
+\item{data.grid}{A grid of predicted true and false positives along the plane formed by absolute log fold change and log10 expression.}
 }
 \value{
 A data frame.
