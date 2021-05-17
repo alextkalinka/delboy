@@ -22,7 +22,7 @@
 #' @param batches A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
 #' @param max.iter An integer value indicating the maximum number of validation samples (default = 10). `NULL` indicates all sample combinations should be taken.
 #' @param bcorr_data_validation `NULL` if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
-#' @param alpha The elastic-net regression penalty, between 0 and 1. If `NULL` (default) this is chosen automatically.
+#' @param alpha The elastic-net regression penalty, between 0 and 1 (default = 0.5). If `NULL`, alpha is chosen automatically.
 #'
 #' @return An object of class `delboy`. Access this object using `hits`, `plot.delboy`, `get_performance_stats`, and `get_deseq2_results`.
 #' @seealso \code{\link{hits}}, \code{\link{plot.delboy}}, \code{\link{get_performance_stats}}, \code{\link{get_deseq2_results}}
@@ -36,7 +36,7 @@
 #' * Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
 run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
                        batches = NULL, max.iter = 10,
-                       bcorr_data_validation = NULL, alpha = NULL){
+                       bcorr_data_validation = NULL, alpha = 0.5){
   # Random samples taken.
   set.seed(1)
 

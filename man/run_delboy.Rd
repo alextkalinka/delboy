@@ -13,7 +13,7 @@ run_delboy(
   batches = NULL,
   max.iter = 10,
   bcorr_data_validation = NULL,
-  alpha = NULL
+  alpha = 0.5
 )
 }
 \arguments{
@@ -33,7 +33,7 @@ run_delboy(
 
 \item{bcorr_data_validation}{\code{NULL} if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to \code{NULL}. Batch correction will be conducted using \code{sva::ComBat} using non-parametric priors.}
 
-\item{alpha}{The elastic-net regression penalty, between 0 and 1. If \code{NULL} (default) this is chosen automatically.}
+\item{alpha}{The elastic-net regression penalty, between 0 and 1 (default = 0.5). If \code{NULL}, alpha is chosen automatically.}
 }
 \value{
 An object of class \code{delboy}. Access this object using \code{hits}, \code{plot.delboy}, \code{get_performance_stats}, and \code{get_deseq2_results}.
