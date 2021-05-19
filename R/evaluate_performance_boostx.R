@@ -1,4 +1,4 @@
-#' evaluate_performance_deg_calls
+#' evaluate_performance_boostx
 #'
 #' Evaluates the performance of `delboy` on RNAseq data by comparison with `DESeq2` output on the original input data for an experiment, controlling for real signal, and adding known signal (using `seqgendiff`'s binomial-thinning approach) for a sampled number of genes from a logFC distribution with both the number and distribution chosen to match as closely as possible the signal in the real data.
 #'
@@ -10,7 +10,6 @@
 #' @param num_non_null An integer value indicating the number of genes to add signal to.
 #' @param lfc A vector of logFC values for non-null cases.
 #' @param lfc_dens A vector of density estimates for the logFC values given in `lfc`.
-#' @param alpha The elastic-net regression penalty, between 0 and 1.
 #'
 #' @return An object of class `delboy_performance`.
 #' @export
@@ -19,11 +18,11 @@
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
 evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, max.iter,
-                                              num_non_null, lfc, lfc_dens, alpha){
+                                           num_non_null, lfc, lfc_dens){
   tryCatch({
     # 1. Prep for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
-
+    
     # 2. All combinations of treatment samples (preserving the number of treatment samples in original data [length(group_2)]).
     all_treat_comb <- delboy::all_combinations_treat_samples(c(group_1, group_2), length(group_2))
     tot_val_combs <- ncol(all_treat_comb)
@@ -36,7 +35,7 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
       num_val_combs <- ncol(all_treat_comb)
     }
     
-    all_val_hits <- NULL
+    all_val_hits <- perf <- NULL
     all_val_perf <- NULL
     # Set up progress bar.
     pb <- progress::progress_bar$new(
@@ -49,47 +48,43 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
       pb$tick()
       # 3. Sample logFC values for num_non_null cases.
       lfc_samp <- sample(lfc, num_non_null, prob = lfc_dens/sum(lfc_dens), replace = T)
-
+      
       # 4. Sample genes to add signal to.
       genes_signal <- sample(data[,gene_column], num_non_null, replace = F)
       names(lfc_samp) <- genes_signal
-
+      
       # 5. Create coefficient matrix for seqgendiff.
       coef_mat <- delboy::make_coef_matrix(data, lfc_samp, gene_column)
-
+      
       # 6. Create design matrix for seqgendiff.
       treat_samps <- all_treat_comb[,i]
       design_mat <- delboy::make_design_matrix(group_1, group_2, treat_samps)
-
+      
       # 7. Add signal using seqgendiff's binomial-thinning approach.
       thout <- seqgendiff::thin_diff(mat = data.m,
                                      design_fixed = design_mat,
                                      coef_fixed = coef_mat)
-
+      
       # 8. Prep bthin matrix for use in DiffExp analyses.
       data.bthin <- delboy::prep_bthin_matrix_diffrep(data, thout$mat,
                                                       colnames(data.m),
                                                       as.logical(c(design_mat)),
                                                       gene_column)
-
+      
       # 9. Run DESeq2 on bthin data.
       group_1.v <- colnames(data.bthin %>%
                               dplyr::select(- !!rlang::sym(gene_column)))[!as.logical(c(design_mat))]
       group_2.v <- colnames(data.bthin %>%
                               dplyr::select(- !!rlang::sym(gene_column)))[as.logical(c(design_mat))]
-      deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column)
-
-      # 10. Prep data for Elastic-net logistic regression.
-      data.elnet <- delboy::prep_elnet_data(data.bthin, group_1.v, group_2.v, gene_column)
-
-      # 11. Run Elastic-net logistic regression on bthin data.
-      elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
-                                                 factor(data.elnet$treat),
-                                                 alpha = alpha)
-
+      deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column) %>%
+        dplyr::mutate(abs_log2FoldChange = abs(log2FoldChange))
+      
+      # 10. Calculate performance.
+      perf <- append(perf, delboy::calc_perf_pval_windows(deseq2_res, "pvalue", "id", "abs_log2FoldChange", genes_signal))
+      
       # 12. Extract performance statistics.
       perf_stats <- delboy::perf_stats_deg(elnet.lr, deseq2_res, lfc_samp)
-
+      
       # 13. Collate TP, FN, and FP into a data frame to aid comparisons.
       delboy_hit_df <- delboy::make_delboy_hit_comparison_table(elnet.lr,
                                                                 deseq2_res,
@@ -110,10 +105,10 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
     }else{
       use_fn <- FALSE
     }
- 
+    
     # 16. SVM for false positive classification.
     svm_validation <- delboy::svm_false_positive_classification(all_val_hits, use_fn = use_fn)
-
+    
     # 17. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_samp,
                 data.bthin = data.bthin,
