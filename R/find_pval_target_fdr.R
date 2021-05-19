@@ -11,6 +11,10 @@
   # Rolling means.
   data <- tidyr::tibble(!!col := zoo::rollmean(data[,stat], 5),
                         pvalue = zoo::rollmean(data$pvalue, 5))
+  # Add zero point back (can be lost when averaging).
+  data <- rbind(data, tidyr::tibble(!!col := 0, pvalue = 0)) %>%
+    dplyr::arrange(pvalue)
+  
   # Kernel smooth.
   data <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(data))) %>%
     dplyr::mutate(type = dtype)
@@ -26,7 +30,8 @@
 #' @param data A data frame containing FDR estimates and the corresponding unadjusted p-values.
 #' @param target_FDR A numerical value (0-100) giving the target FDR percent (%).
 #' @return A list containing the following elements:
-#' * `pvalue_target_FDR`: A numerical value giving the p-value corresponding to the target FDR.
+#' * `pvalue_target_FDR`: The p-value corresponding to the target FDR.
+#' * `abs_Log2FoldChange.argmax_KS_dist`: The absolute log fold change FP threshold corresponding to the target FDR.
 #' * `data_FDR`: A modified data frame containing smoothed FDR estimates.
 #' * `data_Sensitivity`: A modified data frame containing smoothed Sensitivity estimates.
 #' * `target_FDR`: A numerical value (0-100) giving the target FDR %.
@@ -73,11 +78,15 @@ find_pval_target_fdr <- function(data, target_FDR){
     data_sens_all <- .smooth_fdr_pvalue(data_sens_all, "Sensitivity.percent", "All")
     
     # 3. Unadjusted p-value that corresponds to target FDR.
-    pval_targfdr <- utils::tail((data_fdr_excl %>%
-                                  dplyr::filter(type == "Excl_Pred_FP") %>%
-                                  dplyr::filter(abs(FDR.percent - target_FDR) == min(abs(FDR.percent - target_FDR), na.rm = T)))$pvalue,1)
+    targfdr <- data_fdr_excl %>%
+      dplyr::filter(type == "Excl_Pred_FP") %>%
+      dplyr::filter(abs(FDR.percent - target_FDR) == min(abs(FDR.percent - target_FDR), na.rm = T))
+    pval_targfdr <- utils::tail(targfdr$pvalue,1)
+    lfc_thresh_targfdr <- utils::tail((data %>%
+                                        dplyr::filter(abs(pvalue - pval_targfdr) == min(abs(pvalue - pval_targfdr),na.rm=T)))$abs_Log2FoldChange.argmax_KS_dist,1)
   
     return(list(pvalue_target_FDR = pval_targfdr,
+                abs_Log2FoldChange.argmax_KS_dist = lfc_thresh_targfdr,
                 data_FDR = rbind(data_fdr_all, data_fdr_excl),
                 data_Sensitivity = rbind(data_sens_all, data_sens_excl),
                 target_FDR = target_FDR))

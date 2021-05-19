@@ -27,7 +27,7 @@
 #' @param gene_column A character string naming the gene column.
 #' @param abs_lfc_column A character string naming the abs log fold change column.
 #' @param deg_genes A character vector naming DEGs.
-#' @return A data frame of performance estimates across the p-val thresholds.
+#' @return A data frame of performance estimates across the p-val thresholds with log fold change values maximising the KS distance at each p-value (`abs_Log2FoldChange.argmax_KS_dist`).
 #' @export
 #' @importFrom dplyr %>% arrange mutate filter select
 #' @importFrom magrittr %<>%
@@ -39,7 +39,7 @@ calc_perf_pval_windows <- function(data, pval_column, gene_column, abs_lfc_colum
       dplyr::filter(!is.na(!! rlang::sym(pval_column))) %>%
       dplyr::arrange(!! rlang::sym(pval_column))
     num_tp <- length(deg_genes)
-    sens <- fdr <- sens.excl <- fdr.excl <- pv <- NULL
+    sens <- fdr <- sens.excl <- fdr.excl <- pv <- lfc_mx <- NULL
     for(i in 1:nrow(data)){
       # TPs and FPs.
       tp <- unlist(data[1:i,gene_column]) %in% deg_genes
@@ -63,9 +63,11 @@ calc_perf_pval_windows <- function(data, pval_column, gene_column, abs_lfc_colum
       sens.excl <- append(sens.excl, 100*sum(tp)/num_tp)
       fdr.excl <- append(fdr.excl, 100*sum(!tp)/nrow(td))
       pv <- append(pv,unlist(data[i,pval_column]))
+      lfc_mx <- append(lfc_mx, lfc_mxdiff)
     }
     ret <- data.frame(pvalue = rep(pv,2), Sensitivity.percent = c(sens,sens.excl),
                       FDR.percent = c(fdr,fdr.excl), 
+                      abs_Log2FoldChange.argmax_KS_dist = rep(lfc_mx,2),
                       type = c(rep("All",length(pv)),rep("Excl_Pred_FP",length(pv))))
     return(ret)
   },

@@ -14,7 +14,8 @@ find_pval_target_fdr(data, target_FDR)
 \value{
 A list containing the following elements:
 \itemize{
-\item \code{pvalue_target_FDR}: A numerical value giving the p-value corresponding to the target FDR.
+\item \code{pvalue_target_FDR}: The p-value corresponding to the target FDR.
+\item \code{abs_Log2FoldChange.argmax_KS_dist}: The absolute log fold change FP threshold corresponding to the target FDR.
 \item \code{data_FDR}: A modified data frame containing smoothed FDR estimates.
 \item \code{data_Sensitivity}: A modified data frame containing smoothed Sensitivity estimates.
 \item \code{target_FDR}: A numerical value (0-100) giving the target FDR \%.
