@@ -9,19 +9,17 @@ find_pval_target_fdr(data, target_FDR)
 \arguments{
 \item{data}{A data frame containing FDR estimates and the corresponding unadjusted p-values.}
 
-\item{target_FDR}{A numerical value (0-1) giving the target FDR.}
+\item{target_FDR}{A numerical value (0-100) giving the target FDR percent (\%).}
 }
 \value{
 A list containing the following elements:
 \itemize{
-\item \code{pvalue} A numerical value giving the p-value corresponding to the target FDR.
-\item \code{loess_fit_fdr_all} An object of class \code{loess}.
-\item \code{loess_fit_fdr_excl} An object of class \code{loess}.
-\item \code{loess_fit_sens_all} An object of class \code{loess}.
-\item \code{loess_fit_sens_excl} An object of class \code{loess}.
-\item \code{target_FDR} A numerical value (0-1) giving the target FDR.
+\item \code{pvalue_target_FDR}: A numerical value giving the p-value corresponding to the target FDR.
+\item \code{data_FDR}: A modified data frame containing smoothed FDR estimates.
+\item \code{data_Sensitivity}: A modified data frame containing smoothed Sensitivity estimates.
+\item \code{target_FDR}: A numerical value (0-100) giving the target FDR \%.
 }
 }
 \description{
-Returns the unadjusted p-value that corresponds to a target FDR using a LOESS fit to the FDR estimates.
+Returns the unadjusted p-value that corresponds to a target FDR.
 }

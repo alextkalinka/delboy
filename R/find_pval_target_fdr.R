@@ -1,8 +1,21 @@
 # Helper functions.
-.chull_df <- function(df){
-  chull_inds <- grDevices::chull(as.matrix(df))
-  df <- df[chull_inds,]
-  return(df)
+.smooth_fdr_pvalue <- function(data, stat, dtype){
+  col <- rlang::sym(stat)
+  # Drop vals down to 0,0.
+  zeros <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(rbind(tidyr::tibble(!!col := 0, pvalue = 0),
+                                                                         data %>% 
+                                                                           dplyr::filter(!!col == min(!!col, na.rm = T)))))) %>%
+    dplyr::rename(!!col := V1, pvalue = V2)
+  data <- rbind(data, zeros) %>%
+    dplyr::arrange(pvalue)
+  # Rolling means.
+  data <- tidyr::tibble(!!col := zoo::rollmean(data[,stat], 5),
+                        pvalue = zoo::rollmean(data$pvalue, 5))
+  # Kernel smooth.
+  data <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(data))) %>%
+    dplyr::mutate(type = dtype)
+  colnames(data) <- c(stat,"pvalue","type")
+  return(data)
 }
 
 
@@ -11,54 +24,62 @@
 #' Returns the unadjusted p-value that corresponds to a target FDR.
 #' 
 #' @param data A data frame containing FDR estimates and the corresponding unadjusted p-values.
-#' @param target_FDR A numerical value (0-1) giving the target FDR.
+#' @param target_FDR A numerical value (0-100) giving the target FDR percent (%).
 #' @return A list containing the following elements:
 #' * `pvalue_target_FDR`: A numerical value giving the p-value corresponding to the target FDR.
-#' * `data`: A modified data frame containing LOESS FDR predictions.
-#' * `target_FDR`: A numerical value (0-1) giving the target FDR.
+#' * `data_FDR`: A modified data frame containing smoothed FDR estimates.
+#' * `data_Sensitivity`: A modified data frame containing smoothed Sensitivity estimates.
+#' * `target_FDR`: A numerical value (0-100) giving the target FDR %.
 #' @md
 #' @export
-#' @importFrom dplyr %>% filter select mutate
+#' @importFrom dplyr %>% filter select mutate arrange rename
 #' @importFrom zoo rollmean
+#' @importFrom smoothr smooth_ksmooth
+#' @importFrom utils tail
+#' @importFrom tidyr tibble
+#' @importFrom rlang !! sym :=
 find_pval_target_fdr <- function(data, target_FDR){
   tryCatch({
     data %<>%
       dplyr::filter(!is.na(pvalue))
-    # Rolling mean used to smooth FDR curve.
+    # 1. FDR.
+    # 1A. Excluding predicted FPs.
     data_fdr_excl <- data %>%
       dplyr::filter(type == "Excl_Pred_FP") %>%
       dplyr::select(FDR.percent, pvalue)
-    # Drop down to 0,0.
-    fdr_excl_zero <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(rbind(data.frame(FDR.percent = 0, pvalue = 0),
-                                                             data_fdr_excl %>% 
-                                                               dplyr::filter(FDR.percent == min(FDR.percent,na.rm = T)))))) %>%
-      dplyr::rename(FDR.percent = V1, pvalue = V2)
-    data_fdr_excl <- rbind(data_fdr_excl, fdr_excl_zero) %>%
-      dplyr::arrange(pvalue)
-    data_fdr_excl <- data.frame(FDR.percent = zoo::rollmean(data_fdr_excl$FDR.percent, 5),
-                                pvalue = zoo::rollmean(data_fdr_excl$pvalue, 5))
-    data_fdr_excl <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(data_fdr_excl))) %>%
-      dplyr::mutate(type = "Excl_Pred_FP")
-    colnames(data_fdr_excl) <- c("FDR.percent","pvalue","type")
+
+    data_fdr_excl <- .smooth_fdr_pvalue(data_fdr_excl, "FDR.percent", "Excl_Pred_FP")
     
+    # 1B. All.
     data_fdr_all <- data %>%
       dplyr::filter(type == "All") %>%
       dplyr::select(FDR.percent, pvalue)
-    # Drop down to 0,0.
-    all_excl_zero <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(rbind(data.frame(FDR.percent = 0, pvalue = 0),
-                                                                           data_fdr_all %>% 
-                                                                             dplyr::filter(FDR.percent == min(FDR.percent,na.rm = T)))))) %>%
-      dplyr::rename(FDR.percent = V1, pvalue = V2)
-    data_fdr_all <- rbind(data_fdr_all, all_excl_zero) %>%
-      dplyr::arrange(pvalue)
-    data_fdr_all <- data.frame(FDR.percent = zoo::rollmean(data_fdr_all$FDR.percent, 5),
-                               pvalue = zoo::rollmean(data_fdr_all$pvalue, 5))
-    data_fdr_all <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(data_fdr_all))) %>%
-      dplyr::mutate(type = "All")
-    colnames(data_fdr_all) <- c("FDR.percent","pvalue","type")
     
-    return(list(#pvalue_target_FDR = pv_fdr_targ,
-                FDR_data = rbind(data_fdr_all,data_fdr_excl),
+    data_fdr_all <- .smooth_fdr_pvalue(data_fdr_all, "FDR.percent", "All")
+    
+    # 2. Sensitivity.
+    # 2A. Excluding predicted FPs.
+    data_sens_excl <- data %>%
+      dplyr::filter(type == "Excl_Pred_FP") %>%
+      dplyr::select(Sensitivity.percent, pvalue)
+    
+    data_sens_excl <- .smooth_fdr_pvalue(data_sens_excl, "Sensitivity.percent", "Excl_Pred_FP")
+    
+    # 2B. All.
+    data_sens_all <- data %>%
+      dplyr::filter(type == "All") %>%
+      dplyr::select(Sensitivity.percent, pvalue)
+    
+    data_sens_all <- .smooth_fdr_pvalue(data_sens_all, "Sensitivity.percent", "All")
+    
+    # 3. Unadjusted p-value that corresponds to target FDR.
+    pval_targfdr <- utils::tail((data_fdr_excl %>%
+                                  dplyr::filter(type == "Excl_Pred_FP") %>%
+                                  dplyr::filter(abs(FDR.percent - target_FDR) == min(abs(FDR.percent - target_FDR), na.rm = T)))$pvalue,1)
+  
+    return(list(pvalue_target_FDR = pval_targfdr,
+                data_FDR = rbind(data_fdr_all, data_fdr_excl),
+                data_Sensitivity = rbind(data_sens_all, data_sens_excl),
                 target_FDR = target_FDR))
   },
   error = function(e) stop(paste("unable to find p-value corresponding to a target FDR:",e))
