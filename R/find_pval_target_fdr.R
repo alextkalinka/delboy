@@ -19,22 +19,40 @@
 #' @md
 #' @export
 #' @importFrom dplyr %>% filter select mutate
-#' @importFrom grDevices chull
+#' @importFrom zoo rollmean
 find_pval_target_fdr <- function(data, target_FDR){
   tryCatch({
-    # Convex hull of points -> densified.
+    data %<>%
+      dplyr::filter(!is.na(pvalue))
+    # Rolling mean used to smooth FDR curve.
     data_fdr_excl <- data %>%
       dplyr::filter(type == "Excl_Pred_FP") %>%
-      dplyr::select(FDR.percent, pvalue) %>%
-      .chull_df()
+      dplyr::select(FDR.percent, pvalue)
+    # Drop down to 0,0.
+    fdr_excl_zero <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(rbind(data.frame(FDR.percent = 0, pvalue = 0),
+                                                             data_fdr_excl %>% 
+                                                               dplyr::filter(FDR.percent == min(FDR.percent,na.rm = T)))))) %>%
+      dplyr::rename(FDR.percent = V1, pvalue = V2)
+    data_fdr_excl <- rbind(data_fdr_excl, fdr_excl_zero) %>%
+      dplyr::arrange(pvalue)
+    data_fdr_excl <- data.frame(FDR.percent = zoo::rollmean(data_fdr_excl$FDR.percent, 5),
+                                pvalue = zoo::rollmean(data_fdr_excl$pvalue, 5))
     data_fdr_excl <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(data_fdr_excl))) %>%
       dplyr::mutate(type = "Excl_Pred_FP")
     colnames(data_fdr_excl) <- c("FDR.percent","pvalue","type")
     
     data_fdr_all <- data %>%
       dplyr::filter(type == "All") %>%
-      dplyr::select(FDR.percent, pvalue) %>%
-      .chull_df()
+      dplyr::select(FDR.percent, pvalue)
+    # Drop down to 0,0.
+    all_excl_zero <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(rbind(data.frame(FDR.percent = 0, pvalue = 0),
+                                                                           data_fdr_all %>% 
+                                                                             dplyr::filter(FDR.percent == min(FDR.percent,na.rm = T)))))) %>%
+      dplyr::rename(FDR.percent = V1, pvalue = V2)
+    data_fdr_all <- rbind(data_fdr_all, all_excl_zero) %>%
+      dplyr::arrange(pvalue)
+    data_fdr_all <- data.frame(FDR.percent = zoo::rollmean(data_fdr_all$FDR.percent, 5),
+                               pvalue = zoo::rollmean(data_fdr_all$pvalue, 5))
     data_fdr_all <- as.data.frame(smoothr::smooth_ksmooth(as.matrix(data_fdr_all))) %>%
       dplyr::mutate(type = "All")
     colnames(data_fdr_all) <- c("FDR.percent","pvalue","type")
