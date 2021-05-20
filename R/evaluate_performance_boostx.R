@@ -18,7 +18,7 @@
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
 evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, max.iter,
-                                           num_non_null, lfc, lfc_dens){
+                                           num_non_null, lfc, lfc_dens, target_fdr){
   tryCatch({
     # 1. Prep for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
@@ -35,8 +35,7 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
       num_val_combs <- ncol(all_treat_comb)
     }
     
-    all_val_hits <- perf <- NULL
-    all_val_perf <- NULL
+    perf <- deg_res <- NULL
     # Set up progress bar.
     pb <- progress::progress_bar$new(
       format = "  validating [:bar] :percent time left: :eta",
@@ -79,19 +78,22 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
       deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column) %>%
         dplyr::mutate(abs_log2FoldChange = abs(log2FoldChange))
       
+      # Prelim mark genes with/without signal added prior to knowing the final p-value and abs(LFC) thresholds.
+      deg_res <- rbind(deg_res,
+                       deseq2_res %>%
+                         dplyr::mutate(signal = ifelse(id %in% genes_signal,T,F),
+                                       val_repl = i))
+      
       # 10. Calculate performance.
-      perf <- append(perf, delboy::calc_perf_pval_windows(deseq2_res, "pvalue", "id", "abs_log2FoldChange", genes_signal))
-      
-      # 12. Extract performance statistics.
-      perf_stats <- delboy::perf_stats_deg(elnet.lr, deseq2_res, lfc_samp)
-      
-      # 13. Collate TP, FN, and FP into a data frame to aid comparisons.
-      delboy_hit_df <- delboy::make_delboy_hit_comparison_table(elnet.lr,
-                                                                deseq2_res,
-                                                                lfc_samp)
-      all_val_hits <- rbind(all_val_hits, delboy_hit_df)
-      all_val_perf <- rbind(all_val_perf, perf_stats)
+      perf <- rbind(perf, delboy::calc_perf_pval_windows(deseq2_res, "pvalue", "id", "abs_log2FoldChange", genes_signal))
     }
+    
+    # 11. Determine the p-value and abs(LFC) thresholds to apply to original results.
+    pval_lfc_thresh <- delboy::find_pval_target_fdr(perf)
+    
+    # 12. Apply thresholds to validation data.
+    
+    
     # 14. Performance stats.
     pstats_summ <- delboy::calculate_perf_stats(all_val_perf)
     
@@ -119,7 +121,7 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
                 svm_validation = svm_validation,
                 num_val_combinations = num_val_combs,
                 all_treat_combinations = all_treat_comb)
-    class(ret) <- "delboy_performance"
+    class(ret) <- "boostx_performance"
   },
   error = function(e) stop(paste("unable to evaluate performance of delboy:",e))
   )

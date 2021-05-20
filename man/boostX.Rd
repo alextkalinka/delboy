@@ -4,7 +4,17 @@
 \alias{boostX}
 \title{boostX}
 \usage{
-boostX(data, diff_exp, group_1, group_2, gene_column, pvalue_column)
+boostX(
+  data,
+  diff_exp,
+  group_1,
+  group_2,
+  gene_column,
+  pvalue_column,
+  max.iter = 10,
+  target_fdr = 0.1,
+  bcorr_data_validation = NULL
+)
 }
 \arguments{
 \item{data}{A data frame containing normalized count data for two different groups and their replicates. Can be a path to a file. Ideally the counts will already have been normalized to Transcripts Per Million (TPM), using, for example, the bias-aware quantification methods employed by \code{salmon} (Patro et al. 2017).}
@@ -20,6 +30,8 @@ boostX(data, diff_exp, group_1, group_2, gene_column, pvalue_column)
 \item{pvalue_column}{A character string naming the pvalue column in \code{diff_exp}.}
 
 \item{max.iter}{An integer value indicating the maximum number of validation samples (default = 10). \code{NULL} indicates all sample combinations should be taken.}
+
+\item{target_fdr}{A numerical value (0-1) indicating the target FDR. Defaults to 0.1.}
 
 \item{bcorr_data_validation}{\code{NULL} if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to \code{NULL}. Batch correction will be conducted using \code{sva::ComBat} using non-parametric priors.}
 }

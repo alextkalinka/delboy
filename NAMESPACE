@@ -3,6 +3,7 @@
 S3method(plot,delboy)
 S3method(print,delboy)
 export(all_combinations_treat_samples)
+export(apply_thresholds_val)
 export(assemble_elnet_hits)
 export(batch_correct)
 export(boostX)
