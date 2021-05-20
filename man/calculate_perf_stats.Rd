@@ -13,5 +13,5 @@ calculate_perf_stats(perf_stats)
 A data frame.
 }
 \description{
-Return sensitivity and precision estimates for delboy validation data as produced by \code{delboy::perf_stats_rnaseq}.
+Return sensitivity and precision estimates for delboy validation data as produced by \code{delboy::perf_stats_deg}.
 }

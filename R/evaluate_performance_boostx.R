@@ -10,6 +10,7 @@
 #' @param num_non_null An integer value indicating the number of genes to add signal to.
 #' @param lfc A vector of logFC values for non-null cases.
 #' @param lfc_dens A vector of density estimates for the logFC values given in `lfc`.
+#' @param target_fdr A numerical value (0-1) indicating the target FDR.
 #'
 #' @return An object of class `delboy_performance`.
 #' @export
@@ -17,7 +18,7 @@
 #' @importFrom dplyr select
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
-evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, max.iter,
+evaluate_performance_boostx <- function(data, group_1, group_2, gene_column, max.iter,
                                            num_non_null, lfc, lfc_dens, target_fdr){
   tryCatch({
     # 1. Prep for seqgendiff.
@@ -89,36 +90,21 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
     }
     
     # 11. Determine the p-value and abs(LFC) thresholds to apply to original results.
-    pval_lfc_thresh <- delboy::find_pval_target_fdr(perf)
+    pval_lfc_thresh <- delboy::find_pval_target_fdr(perf, 100*target_fdr)
     
     # 12. Apply thresholds to validation data.
+    deg_res <- delboy::apply_thresholds_val(deg_res, pval_lfc_thresh)
+    
+    # 13. Performance stats.
+
     
     
-    # 14. Performance stats.
-    pstats_summ <- delboy::calculate_perf_stats(all_val_perf)
-    
-    # 15. Is the validation data sufficient for finding SVM decision boundary?
-    if(sum(all_val_hits$hit_type == "True_Positive") == 0)
-      stop("* no true positives in validation data: unable to validate algorithms *")
-    
-    if(sum(all_val_hits$hit_type == "False_Positive") < 10){
-      .db_message("* less than 10 False Positive cases in validation data: using lowest 75% of False Negatives *", "red")
-      use_fn <- TRUE
-    }else{
-      use_fn <- FALSE
-    }
-    
-    # 16. SVM for false positive classification.
-    svm_validation <- delboy::svm_false_positive_classification(all_val_hits, use_fn = use_fn)
-    
-    # 17. Build return object of class 'delboy_performance'.
+    # 14. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_samp,
                 data.bthin = data.bthin,
-                elnet_lr_res = elnet.lr,
-                deseq2_res = deseq2_res,
-                delboy_hit_table = all_val_hits,
-                performance_stats = pstats_summ,
-                svm_validation = svm_validation,
+                deg_res = deg_res,
+                pval_lfc_thresholds = pval_lfc_thresh,
+                performance = perf,
                 num_val_combinations = num_val_combs,
                 all_treat_combinations = all_treat_comb)
     class(ret) <- "boostx_performance"

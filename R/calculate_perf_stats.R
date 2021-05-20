@@ -1,6 +1,6 @@
 #' calculate_perf_stats
 #' 
-#' Return sensitivity and precision estimates for delboy validation data as produced by `delboy::perf_stats_rnaseq`.
+#' Return sensitivity and precision estimates for delboy validation data as produced by `delboy::perf_stats_deg`.
 #' 
 #' @param perf_stats A data frame of performance stats for individual validation samples.
 #' 

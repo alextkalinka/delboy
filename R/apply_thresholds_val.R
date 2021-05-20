@@ -11,11 +11,15 @@
 apply_thresholds_val <- function(data, thresh){
   tryCatch({
     pval_thresh <- thresh$pvalue_target_FDR
-    lfc_thresh <- thresh$abs_Log2FoldChange.argmax_KS_dist
     data %<>%
+      # Those with signal plus those defined as hits by the pvalue threshold.
+      dplyr::filter(signal | pvalue < pval_thresh) %>%
       dplyr::rowwise() %>%
-      dplyr::mutate(hit_type = dplyr::case_when()) %>%
+      dplyr::mutate(hit_type = dplyr::case_when((!signal & pvalue < pval_thresh) ~ "False_Positive",
+                                                (signal & pvalue >= pval_thresh) ~ "False_Negative",
+                                                (signal & pvalue < pval_thresh) ~ "True_Positive")) %>%
       dplyr::ungroup()
+    return(data)
   },
   error = function(e) stop(paste("unable to apply p-value and logFC thresholds to validation data:",e))
   )

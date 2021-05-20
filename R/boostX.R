@@ -37,7 +37,7 @@ boostX <- function(data, diff_exp, group_1, group_2, gene_column, pvalue_column,
   
   ### 3. Estimate non-null logFC distribution.
   cat("Estimating non-null logFC distribution...\n")
-  lfdr.lfc <- suppressWarnings(delboy::estimate_nonnull_logfc_distr(deseq2_res$log2FoldChange))
+  lfdr.lfc <- suppressWarnings(delboy::estimate_nonnull_logfc_distr(diff_exp$log2FoldChange))
   
   ## 4. Batch-correct real signal to create true-negative dataset.
   if(is.null(bcorr_data_validation)){
@@ -51,6 +51,11 @@ boostX <- function(data, diff_exp, group_1, group_2, gene_column, pvalue_column,
   
   ### 5. Performance evaluation.
   cat("Performance evaluation to validate results...\n")
+  perf_val <- delboy::evaluate_performance_boostx(data, group_1, group_2, gene_column,
+                                                  max.iter, non.null$num.non_null, 
+                                                  lfdr.lfc$non_null.lfc,
+                                                  lfdr.lfc$non_null.dens,
+                                                  target_fdr)
   
-  
+  return(perf_val)
 }

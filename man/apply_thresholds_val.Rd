@@ -4,10 +4,12 @@
 \alias{apply_thresholds_val}
 \title{apply_thresholds_val}
 \usage{
-apply_thresholds_val(data)
+apply_thresholds_val(data, thresh)
 }
 \arguments{
 \item{data}{A data frame containing DEG results for multiple validation samples.}
+
+\item{thresh}{An object produced by \code{delboy::find_pval_target_fdr}.}
 }
 \value{
 A modified data frame.
