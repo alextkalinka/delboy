@@ -51,11 +51,13 @@ boostX <- function(data, diff_exp, group_1, group_2, gene_column, pvalue_column,
   
   ### 5. Performance evaluation.
   cat("Performance evaluation to validate results...\n")
-  perf_val <- delboy::evaluate_performance_boostx(data, group_1, group_2, gene_column,
-                                                  max.iter, non.null$num.non_null, 
-                                                  lfdr.lfc$non_null.lfc,
-                                                  lfdr.lfc$non_null.dens,
-                                                  target_fdr)
+  perf_val <- suppressWarnings(
+    delboy::evaluate_performance_boostx(data, group_1, group_2, gene_column,
+                                        max.iter, non.null$num.non_null, 
+                                        lfdr.lfc$non_null.lfc,
+                                        lfdr.lfc$non_null.dens,
+                                        target_fdr)
+  )
   
   return(perf_val)
 }

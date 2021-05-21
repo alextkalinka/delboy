@@ -36,7 +36,7 @@ evaluate_performance_boostx(
 \item{target_fdr}{A numerical value (0-1) indicating the target FDR.}
 }
 \value{
-An object of class \code{delboy_performance}.
+An object of class \code{boostx_performance}.
 }
 \description{
 Evaluates the performance of \code{delboy} on RNAseq data by comparison with \code{DESeq2} output on the original input data for an experiment, controlling for real signal, and adding known signal (using \code{seqgendiff}'s binomial-thinning approach) for a sampled number of genes from a logFC distribution with both the number and distribution chosen to match as closely as possible the signal in the real data.

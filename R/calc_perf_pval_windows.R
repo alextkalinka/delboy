@@ -1,4 +1,14 @@
 # Helper functions.
+.get_column <- function(data, col, filter_col = NULL, filter_val = NULL){
+  if(!is.null(filter_col)){
+    data %<>%
+      dplyr::filter(!! rlang::sym(filter_col) < filter_val)
+  }
+  return(unlist(data %>%
+                  dplyr::select(!! rlang::sym(col)))
+  )
+}
+
 # Calculates the argmax KS distance for two distributions.
 .argmax_ks_dist <- function(d1, d2){
   # Want to find argmax for d1 - d2 (sign matters) - i.e. d1 is distribution for FPs.
@@ -33,36 +43,45 @@
 #' @importFrom magrittr %<>%
 #' @importFrom rlang !! sym
 #' @importFrom stats ecdf
+#' @importFrom utils tail
 calc_perf_pval_windows <- function(data, pval_column, gene_column, abs_lfc_column, deg_genes){
   tryCatch({
     data %<>%
       dplyr::filter(!is.na(!! rlang::sym(pval_column))) %>%
       dplyr::arrange(!! rlang::sym(pval_column))
     num_tp <- length(deg_genes)
+    # Select p-values for calculations.
+    pvals <- seq(0,1,by=0.008)
+    
     sens <- fdr <- sens.excl <- fdr.excl <- pv <- lfc_mx <- NULL
-    for(i in 1:nrow(data)){
+    for(pval in pvals){
       # TPs and FPs.
-      tp <- unlist(data[1:i,gene_column]) %in% deg_genes
-      tp.genes <- unlist(data[1:i,gene_column])[tp]
-      fp.genes <- unlist(data[1:i,gene_column])[!tp]
+      tgenes <- .get_column(data, gene_column, pval_column, pval)
+      tpvals <- .get_column(data, pval_column, pval_column, pval)
+      tp <- tgenes %in% deg_genes
+      tp.genes <- tgenes[tp]
+      fp.genes <- tgenes[!tp]
       if(sum(tp) == 0 || sum(!tp) == 0) next
       sens <- append(sens, 100*sum(tp)/num_tp)
-      fdr <- append(fdr, 100*sum(!tp)/i)
+      fdr <- append(fdr, 100*sum(!tp)/length(tgenes))
       # abs(LFC) that maximises separation between TPs and FPs.
-      d1 <- unlist(data[1:i,] %>%
+      d1 <- unlist(data %>%
+                     dplyr::filter(!! rlang::sym(pval_column) < pval) %>%
                      dplyr::filter(!! rlang::sym(gene_column) %in% fp.genes) %>%
                      dplyr::select(!! rlang::sym(abs_lfc_column)))
-      d2 <- unlist(data[1:i,] %>%
-               dplyr::filter(!! rlang::sym(gene_column) %in% tp.genes) %>%
-               dplyr::select(!! rlang::sym(abs_lfc_column)))
+      d2 <- unlist(data %>%
+                     dplyr::filter(!! rlang::sym(pval_column) < pval) %>%
+                     dplyr::filter(!! rlang::sym(gene_column) %in% tp.genes) %>%
+                     dplyr::select(!! rlang::sym(abs_lfc_column)))
       lfc_mxdiff <- .argmax_ks_dist(d1, d2)$val
       # Exclude predicted FPs below abs(LFC) threshold.
-      td <- data[1:i,] %>%
+      td <- data %>%
+        dplyr::filter(!! rlang::sym(pval_column) < pval) %>%
         dplyr::filter(!! rlang::sym(abs_lfc_column) > lfc_mxdiff)
       tp <- unlist(td[,gene_column]) %in% deg_genes
       sens.excl <- append(sens.excl, 100*sum(tp)/num_tp)
       fdr.excl <- append(fdr.excl, 100*sum(!tp)/nrow(td))
-      pv <- append(pv,unlist(data[i,pval_column]))
+      pv <- append(pv, utils::tail(tpvals,1))
       lfc_mx <- append(lfc_mx, lfc_mxdiff)
     }
     ret <- data.frame(pvalue = rep(pv,2), Sensitivity.percent = c(sens,sens.excl),

@@ -6,7 +6,7 @@
 #' @param thresh An object produced by `delboy::find_pval_target_fdr`.
 #' @return A modified data frame.
 #' @export
-#' @importFrom dplyr %>% mutate rowwise ungroup case_when
+#' @importFrom dplyr %>% mutate rowwise ungroup case_when filter
 #' @importFrom magrittr %<>%
 apply_thresholds_val <- function(data, thresh){
   tryCatch({
@@ -17,7 +17,9 @@ apply_thresholds_val <- function(data, thresh){
       dplyr::rowwise() %>%
       dplyr::mutate(hit_type = dplyr::case_when((!signal & pvalue < pval_thresh) ~ "False_Positive",
                                                 (signal & pvalue >= pval_thresh) ~ "False_Negative",
-                                                (signal & pvalue < pval_thresh) ~ "True_Positive")) %>%
+                                                (signal & pvalue < pval_thresh) ~ "True_Positive",
+                                                TRUE ~ "Other")) %>%
+      dplyr::filter(hit_type != "Other") %>%
       dplyr::ungroup()
     return(data)
   },

@@ -12,7 +12,7 @@
 #' @param lfc_dens A vector of density estimates for the logFC values given in `lfc`.
 #' @param target_fdr A numerical value (0-1) indicating the target FDR.
 #'
-#' @return An object of class `delboy_performance`.
+#' @return An object of class `boostx_performance`.
 #' @export
 #' @importFrom seqgendiff thin_diff
 #' @importFrom dplyr select
@@ -79,10 +79,10 @@ evaluate_performance_boostx <- function(data, group_1, group_2, gene_column, max
       deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column) %>%
         dplyr::mutate(abs_log2FoldChange = abs(log2FoldChange))
       
-      # Prelim mark genes with/without signal added prior to knowing the final p-value and abs(LFC) thresholds.
+      # Prelim mark genes with/without added signal prior to knowing the final p-value and abs(LFC) thresholds.
       deg_res <- rbind(deg_res,
                        deseq2_res %>%
-                         dplyr::mutate(signal = ifelse(id %in% genes_signal,T,F),
+                         dplyr::mutate(signal = id %in% genes_signal,
                                        val_repl = i))
       
       # 10. Calculate performance.
@@ -109,7 +109,7 @@ evaluate_performance_boostx <- function(data, group_1, group_2, gene_column, max
                 all_treat_combinations = all_treat_comb)
     class(ret) <- "boostx_performance"
   },
-  error = function(e) stop(paste("unable to evaluate performance of delboy:",e))
+  error = function(e) stop(paste("unable to evaluate performance of boostX:",e))
   )
   return(ret)
 }

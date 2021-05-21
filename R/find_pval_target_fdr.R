@@ -11,6 +11,9 @@
   # Rolling means.
   data <- tidyr::tibble(!!col := zoo::rollmean(data[,stat], 5),
                         pvalue = zoo::rollmean(data$pvalue, 5))
+  # Run twice to help smooth.
+  data <- tidyr::tibble(!!col := zoo::rollmean(data[,stat], 5),
+                        pvalue = zoo::rollmean(data$pvalue, 5))
   # Add zero point back (can be lost when averaging).
   data <- rbind(data, tidyr::tibble(!!col := 0, pvalue = 0)) %>%
     dplyr::arrange(pvalue)
