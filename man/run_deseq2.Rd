@@ -4,7 +4,7 @@
 \alias{run_deseq2}
 \title{run_deseq2}
 \usage{
-run_deseq2(data, group_1, group_2, gene_column)
+run_deseq2(data, group_1, group_2, gene_column, lfc_shrink = FALSE)
 }
 \arguments{
 \item{data}{A data frame containing normalized count data.}
@@ -14,6 +14,8 @@ run_deseq2(data, group_1, group_2, gene_column)
 \item{group_2}{A character vector naming the columns that belong to group 2.}
 
 \item{gene_column}{A character string naming the column containing gene names.}
+
+\item{lfc_shrink}{Logical - shrink logFC values, or not (default).}
 }
 \value{
 A data frame containing \code{DESeq2} results.

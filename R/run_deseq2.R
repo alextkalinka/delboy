@@ -12,7 +12,7 @@
 #' @importFrom DESeq2 DESeqDataSetFromMatrix DESeq results lfcShrink
 #' @importFrom dplyr arrange mutate select everything
 #' @export
-run_deseq2 <- function(data, group_1, group_2, gene_column, lfc_shrink = T){
+run_deseq2 <- function(data, group_1, group_2, gene_column, lfc_shrink = FALSE){
   tryCatch({
     # Prep data for DESeq2.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
