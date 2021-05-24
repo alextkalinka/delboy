@@ -35,6 +35,12 @@
 #' @importFrom magrittr %<>%
 smooth_decision_boundary <- function(db, entry_point = 1.25){
   tryCatch({
+    # Check if entry point makes sense.
+    if(sum(db$log10_baseExpr <= entry_point) <= 10){
+      entry_point <- median(db$log10_baseExpr, na.rm = T)
+      .db_message(paste("using DB smoothing entry point of",entry_point),"blue")
+    }
+    
     db_low <- db %>%
       dplyr::filter(log10_baseExpr <= entry_point) %>%
       dplyr::arrange(dplyr::desc(log10_baseExpr))
