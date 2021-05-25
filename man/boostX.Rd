@@ -11,6 +11,7 @@ boostX(
   group_2,
   gene_column,
   pvalue_column,
+  algorithm,
   max.iter = 10,
   target_fdr = 0.1,
   bcorr_data_validation = NULL
@@ -28,6 +29,8 @@ boostX(
 \item{gene_column}{A character string naming the column containing gene names.}
 
 \item{pvalue_column}{A character string naming the pvalue column in \code{diff_exp}.}
+
+\item{algorithm}{A chracter string naming the algorithm to use (lower-case only): \code{deseq2}, \code{mageck}.}
 
 \item{max.iter}{An integer value indicating the maximum number of validation samples (default = 10). \code{NULL} indicates all sample combinations should be taken.}
 

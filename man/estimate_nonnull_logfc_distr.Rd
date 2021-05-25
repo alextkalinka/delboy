@@ -7,10 +7,15 @@
 estimate_nonnull_logfc_distr(logfc)
 }
 \arguments{
-\item{logfc}{A vector of logFC values derived from \code{delboy::run_deseq2}.}
+\item{logfc}{A vector of logFC values.}
 }
 \value{
-An object of class delboy_logfc
+A list with the following elements:
+\itemize{
+\item \code{non_null.dens}: non-null density estimates.
+\item \code{non_null.lfc}: logFC mid-points corresponding to the densities.
+\item \code{misfit}: A numerical estimate of the misfit (larger values indicate worse misfits).
+}
 }
 \description{
 Estimates the full non-null logFC distribution based on \code{DESeq2} logFC estimates and mixture model fits employed by \code{locfdr}.

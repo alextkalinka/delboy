@@ -13,7 +13,8 @@ evaluate_performance_boostx(
   num_non_null,
   lfc,
   lfc_dens,
-  target_fdr
+  target_fdr,
+  algorithm
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ evaluate_performance_boostx(
 \item{lfc_dens}{A vector of density estimates for the logFC values given in \code{lfc}.}
 
 \item{target_fdr}{A numerical value (0-1) indicating the target FDR.}
+
+\item{algorithm}{A chracter string naming the algorithm to use (lower-case only): \code{deseq2}, \code{mageck}.}
 }
 \value{
 An object of class \code{boostx_performance}.

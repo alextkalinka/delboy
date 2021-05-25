@@ -11,6 +11,7 @@
 #' @param lfc A vector of logFC values for non-null cases.
 #' @param lfc_dens A vector of density estimates for the logFC values given in `lfc`.
 #' @param target_fdr A numerical value (0-1) indicating the target FDR.
+#' @param algorithm A chracter string naming the algorithm to use (lower-case only): `deseq2`, `mageck`.
 #'
 #' @return An object of class `boostx_performance`.
 #' @export
@@ -19,7 +20,7 @@
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
 evaluate_performance_boostx <- function(data, group_1, group_2, gene_column, max.iter,
-                                           num_non_null, lfc, lfc_dens, target_fdr){
+                                           num_non_null, lfc, lfc_dens, target_fdr, algorithm){
   tryCatch({
     # 1. Prep for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, gene_column)
@@ -71,22 +72,27 @@ evaluate_performance_boostx <- function(data, group_1, group_2, gene_column, max
                                                       as.logical(c(design_mat)),
                                                       gene_column)
       
-      # 9. Run DESeq2 on bthin data.
+      # 9. Run DEG algorithm.
       group_1.v <- colnames(data.bthin %>%
                               dplyr::select(- !!rlang::sym(gene_column)))[!as.logical(c(design_mat))]
       group_2.v <- colnames(data.bthin %>%
                               dplyr::select(- !!rlang::sym(gene_column)))[as.logical(c(design_mat))]
-      deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column) %>%
-        dplyr::mutate(abs_log2FoldChange = abs(log2FoldChange))
+      
+      switch(
+        type,
+        deseq2 = tdeg_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column) %>%
+          dplyr::mutate(abs_log2FoldChange = abs(log2FoldChange)),
+        mageck = tdeg_res <- delboy::run_mageck()
+      )
       
       # Prelim mark genes with/without added signal prior to knowing the final p-value and abs(LFC) thresholds.
       deg_res <- rbind(deg_res,
-                       deseq2_res %>%
+                       tdeg_res %>%
                          dplyr::mutate(signal = id %in% genes_signal,
                                        val_repl = i))
       
       # 10. Calculate performance.
-      perf <- rbind(perf, delboy::calc_perf_pval_windows(deseq2_res, "pvalue", "id", "abs_log2FoldChange", genes_signal))
+      perf <- rbind(perf, delboy::calc_perf_pval_windows(tdeg_res, "pvalue", "id", "abs_log2FoldChange", genes_signal))
     }
     
     # 11. Determine the p-value and abs(LFC) thresholds to apply to original results.
