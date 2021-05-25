@@ -21,6 +21,7 @@
 #' @importFrom kdensity kdensity
 lfc_nonnull_kdensity <- function(logfc, lfdr){
   tryCatch({
+    set.seed(1)
     breaks <- .breaks_locfdr(logfc)
     if(length(breaks) != (nrow(lfdr$mat) + 1)) stop("breaks and locfdr output mismatch")
     # 1. Sample logFC according to locfdr estimates 1 - fdr.
