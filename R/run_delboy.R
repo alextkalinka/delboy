@@ -31,6 +31,7 @@
 #' @importFrom utils read.delim
 #' @importFrom crayon blue red green magenta
 #' @md
+#' @author Alex T. Kalinka
 #' @references
 #' * Kalinka, A. T. 2020. Improving the sensitivity of differential-expression analyses for under-powered RNA-seq experiments. bioRxiv [10.1101/2020.10.15.340737](https://doi.org/10.1101/2020.10.15.340737).
 #' * Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.

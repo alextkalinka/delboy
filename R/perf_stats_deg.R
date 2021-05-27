@@ -48,7 +48,7 @@ perf_stats_deg <- function(delboy_res, deseq2_res, lfc_samp, padj_cutoff = 0.1){
 
     pstats <- rbind(delboy_stats, deseq2_stats)
   },
-  error = function(e) stop(paste("unable to extract performance stats for RNAseq data:",e))
+  error = function(e) stop(paste("unable to extract performance stats for DEG results:",e))
   )
   return(pstats)
 }

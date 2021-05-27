@@ -10,9 +10,13 @@
 #'
 #' Estimates the full non-null logFC distribution based on `DESeq2` logFC estimates and mixture model fits employed by `locfdr`.
 #'
-#' @param logfc A vector of logFC values derived from `delboy::run_deseq2`.
+#' @param logfc A vector of logFC values.
 #'
-#' @return An object of class delboy_logfc
+#' @return A list with the following elements:
+#' * `non_null.dens`: non-null density estimates.
+#' * `non_null.lfc`: logFC mid-points corresponding to the densities.
+#' * `misfit`: A numerical estimate of the misfit (larger values indicate worse misfits).
+#' @md
 #' @export
 #' @importFrom locfdr locfdr
 #' @importFrom dplyr between
@@ -20,6 +24,7 @@ estimate_nonnull_logfc_distr <- function(logfc){
   misfit <- FALSE
   tryCatch({
     withCallingHandlers({
+      # Strong asymmetry in the tails can lead to very high misfits.
       minr <- .min_range(logfc)
       lfdr.lfc <- locfdr::locfdr(logfc[dplyr::between(logfc,-minr, minr)], plot = 0)
     },

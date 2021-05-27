@@ -24,7 +24,7 @@ calc_perf_pval_windows(
 \item{deg_genes}{A character vector naming DEGs.}
 }
 \value{
-A data frame of performance estimates across the p-val thresholds.
+A data frame of performance estimates across the p-val thresholds with log fold change values maximising the KS distance at each p-value (\code{abs_Log2FoldChange.argmax_KS_dist}).
 }
 \description{
 Calculates sensitivity and FDR (after excluding predicted false positives) across a progressively larger window of DEG p-values.

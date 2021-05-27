@@ -1,3 +1,11 @@
+# Helper functions.
+.chull_df <- function(df){
+  chull_inds <- grDevices::chull(as.matrix(df))
+  df <- df[chull_inds,]
+  return(df)
+}
+
+
 #' process_decision_boundary
 #' 
 #' Extract and smooth a decision boundary along the axes of fold-change and expression such that fold change is a convex, monotonically decreasing function of expression level.
