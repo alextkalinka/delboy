@@ -51,5 +51,5 @@ Performs a differential-representation analysis using an elastic-net logistic re
 \code{\link{hits}}, \code{\link{plot.delboy}}, \code{\link{get_performance_stats}}, \code{\link{get_deseq2_results}}
 }
 \author{
-Alex T. Kalinka \href{mailto:alex.t.kalinka@gmail.com}{alex.t.kalinka@gmail.com}
+Alex T. Kalinka, \email{alex.t.kalinka@gmail.com}
 }
