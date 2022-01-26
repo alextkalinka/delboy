@@ -16,6 +16,6 @@ print.delboy <- function(x, ...){
             "\nFDR (%):\n  delboy: ",round(x$performance_stats_corr_FP$FDR.percent[1],3),
             " (",x$performance_stats_corr_FP$Num_false_calls[1]," genes)",
             "\n  DESeq2: ",round(x$performance_stats_corr_FP$FDR.percent[2],3),
-            " (",x$performance_stats_corr_FP$Num_false_calls[2]," genes)",
+            " (",x$performance_stats_corr_FP$Num_false_calls[2]," genes)\n",
             sep=""))
 }
