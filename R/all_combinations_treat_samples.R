@@ -10,7 +10,7 @@
 #' @importFrom combinat combn
 all_combinations_treat_samples <- function(samples, num_treat){
   tryCatch({
-    if(num_treat >= samples)
+    if(num_treat >= length(samples))
       stop(paste("'length(num_treat)' must be less than length(samples):",length(num_treat),"vs",length(samples)))
     comb <- combinat::combn(samples, num_treat)
     return(comb)

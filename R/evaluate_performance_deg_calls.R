@@ -84,8 +84,8 @@ evaluate_performance_deg_calls <- function(data, group_1, group_2, gene_column, 
 
       # 11. Run Elastic-net logistic regression on bthin data.
       elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
-                                               factor(data.elnet$treat),
-                                               alpha = alpha)
+                                                 factor(data.elnet$treat),
+                                                 alpha = alpha)
       
       # 12. Extract performance statistics.
       perf_stats <- delboy::perf_stats_deg(elnet.lr, deseq2_res, lfc_samp)
