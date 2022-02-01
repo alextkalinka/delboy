@@ -23,6 +23,7 @@ run_deseq2 <- function(data, group_1, group_2, gene_column){
       dplyr::arrange(padj) %>%
       dplyr::mutate(id = rownames(.)) %>%
       dplyr::select(id, dplyr::everything())
+    rownames(res) <- NULL
   },
   error = function(e) stop(paste("unable to run DESeq2:",e))
   )
