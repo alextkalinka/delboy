@@ -1,11 +1,11 @@
-#' expand_med_logfc_guides
+#' expand_logfc_guides
 #' 
-#' Expands a set of median logFC values into within-gene per-guide level logFC values by sampling from original guide-level logFC data.
+#' Expands a set of summary per-gene logFC values into within-gene per-guide level logFC values by sampling from original guide-level logFC data.
 #' 
-#' @param data A data frame containing gene and logFC columns.
+#' @param data A data frame containing gene and logFC columns at the gRNA level.
 #' @param gene_col A character string naming the gene column in `data`.
 #' @param lfc_col A character string naming the logFC column in `data`.
-#' @param med_lfc A vector of median logFC values (originally sampled from an estimated non-null logFC distribution derived from `data`).
+#' @param med_lfc A vector of logFC values (originally sampled from an estimated non-null logFC distribution derived from `data`).
 #' @param lfc_half_window A real number providing the size of the half-window around each logFC when defining the sampling population. Defaults to 0.3.
 #' 
 #' @return A data frame containing a gene and logFC column with sampled logFC values.
@@ -13,7 +13,7 @@
 #' @importFrom magrittr %<>%
 #' @importFrom dplyr filter between %>% mutate group_by summarise ungroup
 #' @importFrom rlang sym !!
-expand_med_logfc_guides <- function(data, gene_col, lfc_col, med_lfc, lfc_half_window = 0.3){
+expand_logfc_guides <- function(data, gene_col, lfc_col, med_lfc, lfc_half_window = 0.3){
   tryCatch({
     lfc_sym <- rlang::sym(lfc_col)
     gene_sym <- rlang::sym(gene_col)

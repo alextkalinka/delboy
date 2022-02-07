@@ -4,10 +4,12 @@
 \alias{estimate_nonnull_logfc_distr}
 \title{estimate_nonnull_logfc_distr}
 \usage{
-estimate_nonnull_logfc_distr(logfc)
+estimate_nonnull_logfc_distr(logfc, signed = FALSE)
 }
 \arguments{
 \item{logfc}{A vector of logFC values derived from \code{delboy::run_deseq2}.}
+
+\item{signed}{Logical indicating whether signed logFC distributions should be returned (defaults to \code{FALSE}).}
 }
 \value{
 An object of class delboy_logfc

@@ -21,9 +21,14 @@ estimate_nonnull_logfc_distr <- function(logfc, signed = FALSE){
   misfit <- FALSE
   tryCatch({
     withCallingHandlers({
-      # To stabilise estimates we exclude extreme logFC asymmetries between negative and positive ends of the distribution.
       minr <- .min_range(logfc)
-      lfdr.lfc <- locfdr::locfdr(logfc[dplyr::between(logfc,-minr, minr)], plot = 0)
+      if(!signed){
+        # To stabilise estimates we exclude extreme logFC asymmetries between negative and positive ends of the distribution.
+        lfc <- logfc[dplyr::between(logfc,-minr, minr)]
+      }else{
+        lfc <- logfc
+      }
+      lfdr.lfc <- locfdr::locfdr(lfc, plot = 0)
     },
     warning = function(w) misfit <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
     )
