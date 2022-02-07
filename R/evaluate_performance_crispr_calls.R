@@ -53,15 +53,16 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       # 3. Sample logFC values for num_non_null cases.
       lfc_samp <- sample(lfc, num_non_null, prob = lfc_dens/sum(lfc_dens), replace = T)
       # We want the variance of logFC values to reflect the sampled logFC values.
-      lfc_samp_grna <- delboy::expand_logfc_guides(data_lfc, gene_column, lfc_column, lfc_samp)
+      lfc_samp_df <- delboy::expand_logfc_guides(data_lfc, gene_column, lfc_column, lfc_samp)
 
       # 4. Sample genes to add signal to.
       genes_signal <- sample(unique(unlist(data[,gene_column],use.names = F)), num_non_null, replace = F)
       grna_signal <- unlist(data[gene_column %in% genes_signal, grna_column], use.names = F)
-      names(lfc_samp) <- genes_signal
+      lfc_samp_grna <- lfc_samp_df$logFC
+      names(lfc_samp_grna) <- grna_signal
 
       # 5. Create coefficient matrix for seqgendiff.
-      coef_mat <- delboy::make_coef_matrix(data, lfc_samp, grna_column)
+      coef_mat <- delboy::make_coef_matrix(data, lfc_samp_grna, grna_column)
 
       # 6. Create design matrix for seqgendiff.
       treat_samps <- all_treat_comb[,i]
