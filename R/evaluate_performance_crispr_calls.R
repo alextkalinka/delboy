@@ -18,7 +18,7 @@
 #' @return An object of class `delboy_performance_crispr`.
 #' @export
 #' @importFrom seqgendiff thin_diff
-#' @importFrom dplyr select
+#' @importFrom dplyr select filter mutate
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
 evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, gene_column, grna_column, lfc_column,
@@ -55,7 +55,7 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       # We want the variance of logFC values to reflect the sampled logFC values.
       lfc_samp_df <- delboy::expand_logfc_guides(data_lfc, gene_column, lfc_column, lfc_samp)
 
-      # 4. Sample genes to add signal to.
+      # 4. Sample genes and guides to add signal to.
       genes_signal <- sample(unique(unlist(data[,gene_column],use.names = F)), num_non_null, replace = F)
       grna_signal <- unlist(data[gene_column %in% genes_signal, grna_column], use.names = F)
       lfc_samp_grna <- lfc_samp_df$logFC
@@ -77,27 +77,26 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       data.bthin <- delboy::prep_bthin_matrix_diffrep(data, thout$mat,
                                                       colnames(data.m),
                                                       as.logical(c(design_mat)),
-                                                      gene_column)
+                                                      grna_column)
 
       # 9. Run DESeq2 on bthin data.
       group_1.v <- colnames(data.bthin %>%
-                              dplyr::select(- !!rlang::sym(gene_column)))[!as.logical(c(design_mat))]
+                              dplyr::select(- !!rlang::sym(grna_column)))[!as.logical(c(design_mat))]
       group_2.v <- colnames(data.bthin %>%
-                              dplyr::select(- !!rlang::sym(gene_column)))[as.logical(c(design_mat))]
-      deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, gene_column, alt_hyp = alt_hyp)
+                              dplyr::select(- !!rlang::sym(grna_column)))[as.logical(c(design_mat))]
+      deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, grna_column, alt_hyp = alt_hyp) %>%
+        # Some test results can be NA.
+        dplyr::filter(!is.na(pvalue)) %>%
+        # Must add a gene column.
+        dplyr::mutate(gene = data[match(id, data[,grna_column]),gene_column])
 
-      # 10. Prep data for Elastic-net logistic regression.
-      data.elnet <- delboy::prep_elnet_data(data.bthin, group_1.v, group_2.v, gene_column)
-
-      # 11. Run Elastic-net logistic regression on bthin data.
-      elnet.lr <- delboy::run_elnet_logistic_reg(as.matrix(data.elnet[,3:ncol(data.elnet)]),
-                                                 factor(data.elnet$treat),
-                                                 alpha = alpha)
+      # 10. Combine gRNA p-values using harmonic meanp approach.
+      comb_pvals <- delboy::combine_harmonic_mean_pvals(deseq2_res, "pvalue", "gene", target_fdr = 0.1)
       
-      # 12. Extract performance statistics.
-      perf_stats <- delboy::perf_stats_deg(elnet.lr, deseq2_res, lfc_samp)
+      # 11. Extract performance statistics.
+      #perf_stats <- delboy::perf_stats_deg(elnet.lr, deseq2_res, lfc_samp)
 
-      # 13. Collate TP, FN, and FP into a data frame to aid comparisons.
+      # 11. Collate TP, FN, and FP into a data frame to aid comparisons.
       delboy_hit_df <- delboy::make_delboy_hit_comparison_table(elnet.lr,
                                                                 deseq2_res,
                                                                 lfc_samp)
