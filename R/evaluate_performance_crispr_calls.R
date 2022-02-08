@@ -93,16 +93,13 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
 
       # 10. Combine gRNA p-values using harmonic meanp approach.
       comb_pvals <- delboy::combine_harmonic_mean_pvals(deseq2_res, "pvalue", "gene", target_fdr = 0.1)
-      
-      # 11. Extract performance statistics.
-      #perf_stats <- delboy::perf_stats_deg(elnet.lr, deseq2_res, lfc_samp)
 
       # 11. Collate TP, FN, and FP into a data frame to aid comparisons.
       delboy_hit_df <- delboy::make_delboy_crispr_hit_comparison_table(comb_pvals, lfc_samp)
       
       all_val_hits <- rbind(all_val_hits, delboy_hit_df)
-      #all_val_perf <- rbind(all_val_perf, perf_stats)
     }
+    return(all_val_hits)
 
     # 12. Is the validation data sufficient for finding SVM decision boundary?
     if(sum(all_val_hits$hit_type == "True_Positive") == 0)
