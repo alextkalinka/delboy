@@ -23,7 +23,10 @@ combine_harmonic_mean_pvals <- function(data, pval_col, group_col, target_fdr){
     ret <- data %>%
       dplyr::mutate(weight = 1/L) %>%
       dplyr::group_by(!! group_sym) %>%
-      dplyr::summarise(sum_w = sum(weight),
+      dplyr::summarise(mean_log2FoldChange = mean(log2FoldChange, na.rm=T),
+                       mean_baseMean = mean(baseMean, na.rm=T),
+                       # HMP calculation.
+                       sum_w = sum(weight),
                        pval_mult_test_thresh = sum_w * alpha.L,
                        pvalue.harmonic_mean = sum_w/sum(weight/!!pval_sym)) %>%
       dplyr::ungroup() %>%

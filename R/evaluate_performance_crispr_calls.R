@@ -57,7 +57,8 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
 
       # 4. Sample genes and guides to add signal to.
       genes_signal <- sample(unique(unlist(data[,gene_column],use.names = F)), num_non_null, replace = F)
-      grna_signal <- unlist(data[gene_column %in% genes_signal, grna_column], use.names = F)
+      names(lfc_samp) <- genes_signal
+      grna_signal <- unlist(data[data[,gene_column] %in% genes_signal, grna_column], use.names = F)
       lfc_samp_grna <- lfc_samp_df$logFC
       names(lfc_samp_grna) <- grna_signal
 
@@ -97,42 +98,38 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       #perf_stats <- delboy::perf_stats_deg(elnet.lr, deseq2_res, lfc_samp)
 
       # 11. Collate TP, FN, and FP into a data frame to aid comparisons.
-      delboy_hit_df <- delboy::make_delboy_hit_comparison_table(elnet.lr,
-                                                                deseq2_res,
-                                                                lfc_samp)
+      delboy_hit_df <- delboy::make_delboy_crispr_hit_comparison_table(comb_pvals, lfc_samp)
+      
       all_val_hits <- rbind(all_val_hits, delboy_hit_df)
-      all_val_perf <- rbind(all_val_perf, perf_stats)
+      #all_val_perf <- rbind(all_val_perf, perf_stats)
     }
-    # 14. Performance stats.
-    pstats_summ <- delboy::calculate_perf_stats(all_val_perf)
-    
-    # 15. Is the validation data sufficient for finding SVM decision boundary?
+
+    # 12. Is the validation data sufficient for finding SVM decision boundary?
     if(sum(all_val_hits$hit_type == "True_Positive") == 0)
-      stop("* no true positives in validation data: unable to validate algorithms *")
+      stop("* no true positives in crispr validation data: unable to validate *")
     
     if(sum(all_val_hits$hit_type == "False_Positive") < 10){
-      .db_message("* less than 10 False Positive cases in validation data: using lowest 75% of False Negatives *", "red")
+      .db_message("* less than 10 False Positive cases in crispr validation data: using lowest 75% of False Negatives *", "red")
       use_fn <- TRUE
     }else{
       use_fn <- FALSE
     }
  
-    # 16. SVM for false positive classification.
+    # 13. SVM for false positive classification.
     svm_validation <- delboy::svm_false_positive_classification(all_val_hits, use_fn = use_fn)
 
-    # 17. Build return object of class 'delboy_performance'.
+    # 14. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_samp,
+                lfc_samp_df = lfc_samp_df,
                 data.bthin = data.bthin,
-                elnet_lr_res = elnet.lr,
                 deseq2_res = deseq2_res,
                 delboy_hit_table = all_val_hits,
-                performance_stats = pstats_summ,
                 svm_validation = svm_validation,
                 num_val_combinations = num_val_combs,
                 all_treat_combinations = all_treat_comb)
     class(ret) <- "delboy_performance_crispr"
   },
-  error = function(e) stop(paste("unable to evaluate performance of delboy:",e))
+  error = function(e) stop(paste("unable to evaluate performance of delboy crispr:",e))
   )
   return(ret)
 }
