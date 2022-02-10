@@ -17,11 +17,12 @@ expand_logfc_guides <- function(data, gene_col, lfc_col, med_lfc, lfc_half_windo
   tryCatch({
     lfc_sym <- rlang::sym(lfc_col)
     gene_sym <- rlang::sym(gene_col)
-    # Median logFCs in data.
+    # Median logFCs at gene level.
     mlfc <- data %>%
       dplyr::group_by(!! gene_sym) %>%
       dplyr::summarise(median_lfc = median(!! lfc_sym, na.rm=T)) %>%
       dplyr::ungroup()
+    # For each FC expand to within-gene variance in FC.
     ret <- NULL
     for(i in 1:length(med_lfc)){
       tfc <- med_lfc[i]
@@ -38,20 +39,20 @@ expand_logfc_guides <- function(data, gene_col, lfc_col, med_lfc, lfc_half_windo
       td <- mlfc %>%
         dplyr::filter(dplyr::between(median_lfc, min_lfc, max_lfc))
       if(nrow(td) == 0) next
-      gene <- sample(unlist(td[,gene_col], use.names=F), 1)
+      tgene <- sample(unlist(td[,gene_col], use.names=F), 1)
       # Extract median logFC deviations for this gene.
       tfv <- data %>%
-        dplyr::filter(!! gene_sym == gene) %>%
-        # Median deviation of logFC values for this gene.
-        dplyr::mutate(median_dev_lfc = !! lfc_sym - median(!! lfc_sym, na.rm = T)) %>%
-        dplyr::filter(!is.na(median_dev_lfc))
+        dplyr::filter(!! gene_sym == tgene) %>%
+        # Mean deviation of logFC values for this gene.
+        dplyr::mutate(mean_dev_lfc = !! lfc_sym - mean(!! lfc_sym, na.rm = T)) %>%
+        dplyr::filter(!is.na(mean_dev_lfc))
       if(nrow(tfv) < 2) next
       # Use median deviations to generate sample of logFC values for this gene.
-      ret <- rbind(ret, data.frame(Gene = gene, num = i, logFC = tfc + tfv$median_dev_lfc))
+      ret <- rbind(ret, data.frame(Gene = tgene, num = i, logFC = tfc + tfv$mean_dev_lfc))
     }
     if(is.null(ret) || nrow(ret) == 0) stop("unable to find any logFCs satisfying the criteria")
   },
-  error = function(e) stop(paste("'expand_med_logfc_guides': unable to expand median logFC values per guide:",e))
+  error = function(e) stop(paste("'expand_med_logfc_guides': unable to expand logFC values per guide:",e))
   )
   return(ret)
 }

@@ -18,7 +18,7 @@
 #' @return An object of class `delboy_performance_crispr`.
 #' @export
 #' @importFrom seqgendiff thin_diff
-#' @importFrom dplyr select filter mutate
+#' @importFrom dplyr select filter mutate group_by ungroup n
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
 evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, gene_column, grna_column, lfc_column,
@@ -41,6 +41,8 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
     
     all_val_hits <- NULL
     all_val_perf <- NULL
+    deseq <- list()
+    counts.bthin <- list()
     # Set up progress bar.
     pb <- progress::progress_bar$new(
       format = "  validating [:bar] :percent time left: :eta",
@@ -56,11 +58,20 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       lfc_samp_df <- delboy::expand_logfc_guides(data_lfc, gene_column, lfc_column, lfc_samp)
 
       # 4. Sample genes and guides to add signal to.
-      genes_signal <- sample(unique(unlist(data[,gene_column],use.names = F)), num_non_null, replace = F)
+      genes_signal <- sample(unique(unlist(data[,gene_column],use.names = F)), 
+                             length(unique(lfc_samp_df$Gene)), replace = F)
       names(lfc_samp) <- genes_signal
-      grna_signal <- unlist(data[data[,gene_column] %in% genes_signal, grna_column], use.names = F)
+      names(genes_signal) <- 1:length(genes_signal)
+      # Map gRNA IDs to genes and filter duplicates (sampled genes could have different numbers of guides).
+      lfc_samp_df %<>%
+        dplyr::mutate(gene = genes_signal[match(num, names(genes_signal))]) %>%
+        dplyr::group_by(gene) %>%
+        dplyr::mutate(sgRNA = data_lfc$id[data_lfc$gene == gene[1]][1:dplyr::n()]) %>%
+        dplyr::ungroup() %>%
+        dplyr::filter(!duplicated(sgRNA))
+
       lfc_samp_grna <- lfc_samp_df$logFC
-      names(lfc_samp_grna) <- grna_signal
+      names(lfc_samp_grna) <- lfc_samp_df$sgRNA
 
       # 5. Create coefficient matrix for seqgendiff.
       coef_mat <- delboy::make_coef_matrix(data, lfc_samp_grna, grna_column)
@@ -98,8 +109,12 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       delboy_hit_df <- delboy::make_delboy_crispr_hit_comparison_table(comb_pvals, lfc_samp)
       
       all_val_hits <- rbind(all_val_hits, delboy_hit_df)
+      deseq[[i]] <- deseq2_res
+      counts.bthin[[i]] <- data.bthin
     }
-    return(all_val_hits)
+    return(list(hits = all_val_hits,
+                deseq2 = deseq,
+                data = counts.bthin))
 
     # 12. Is the validation data sufficient for finding SVM decision boundary?
     if(sum(all_val_hits$hit_type == "True_Positive") == 0)
