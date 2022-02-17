@@ -24,7 +24,8 @@ make_delboy_crispr_hit_comparison_table <- function(comb_pvals, lfc_samp){
                                                 gene %in% FN ~ "False_Negative",
                                                 gene %in% FP ~ "False_Positive"),
                     hit_type = factor(hit_type,levels=c("True_Positive","False_Negative",
-                                                        "False_Positive")))
+                                                        "False_Positive")),
+                    lfc_true_median = lfc_samp[match(gene, names(lfc_samp))])
   },
   error = function(e) stop(paste("unable to build delboy-DESeq2 crispr comparison data frame:",e))
   )

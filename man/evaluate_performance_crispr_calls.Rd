@@ -16,7 +16,8 @@ evaluate_performance_crispr_calls(
   num_non_null,
   lfc,
   lfc_dens,
-  alt_hyp
+  alt_hyp,
+  target_fdr = 0.1
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ evaluate_performance_crispr_calls(
 \item{lfc_dens}{A vector of density estimates for the logFC values given in \code{lfc}.}
 
 \item{alt_hyp}{A character string specifying the alternative hypothesis. Can be one of: \code{greater}, or \code{less} (see \code{DESeq2::results} documentation).}
+
+\item{target_fdr}{Numeric value (0-1) giving the target FDR. Defaults to 0.1.}
 }
 \value{
 An object of class \code{delboy_performance_crispr}.

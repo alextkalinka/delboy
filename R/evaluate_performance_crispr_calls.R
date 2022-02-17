@@ -14,6 +14,7 @@
 #' @param lfc A vector of logFC values for non-null cases.
 #' @param lfc_dens A vector of density estimates for the logFC values given in `lfc`.
 #' @param alt_hyp A character string specifying the alternative hypothesis. Can be one of: `greater`, or `less` (see `DESeq2::results` documentation).
+#' @param target_fdr Numeric value (0-1) giving the target FDR. Defaults to 0.1.
 #'
 #' @return An object of class `delboy_performance_crispr`.
 #' @export
@@ -22,7 +23,9 @@
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
 evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, gene_column, grna_column, lfc_column,
-                                              max.iter, num_non_null, lfc, lfc_dens, alt_hyp){
+                                              max.iter, num_non_null, lfc, lfc_dens, 
+                                              alt_hyp, target_fdr = 0.1){
+  if(!alt_hyp %in% c("less","greater")) stop("'alt_hyp' must be one of 'less' or 'greater'")
   tryCatch({
     # 1. Prep for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, grna_column)
@@ -96,6 +99,7 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
                               dplyr::select(- !!rlang::sym(grna_column)))[!as.logical(c(design_mat))]
       group_2.v <- colnames(data.bthin %>%
                               dplyr::select(- !!rlang::sym(grna_column)))[as.logical(c(design_mat))]
+      
       deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, grna_column, alt_hyp = alt_hyp) %>%
         # Some test results can be NA.
         dplyr::filter(!is.na(pvalue)) %>%
@@ -116,19 +120,22 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
                 deseq2 = deseq,
                 data = counts.bthin))
 
-    # 12. Is the validation data sufficient for finding SVM decision boundary?
-    if(sum(all_val_hits$hit_type == "True_Positive") == 0)
-      stop("* no true positives in crispr validation data: unable to validate *")
+    # 12. Estimate aggregate FDR across samples.
+    tot_tp <- sum(all_val_hits$hit_type == "True_Positive")
+    tot_fp <- sum(all_val_hits$hit_type == "False_Positive")
+    fdr_est <- 100*tot_fp/(tot_tp + tot_fp)
+    if(is.nan(fdr_est)) fdr_est <- 0
     
-    if(sum(all_val_hits$hit_type == "False_Positive") < 10){
-      .db_message("* less than 10 False Positive cases in crispr validation data: using lowest 75% of False Negatives *", "red")
-      use_fn <- TRUE
+    # 13. Is FDR greater than 'target_fdr'? If so, attempt to find threshold value of a summary lfc metric to reduce FDR below target.
+    if(fdr_est > target_fdr){
+      if(tot_tp > 0){
+        
+      }
     }else{
-      use_fn <- FALSE
+      fdr_correction <- NA
     }
- 
-    # 13. SVM for false positive classification.
-    svm_validation <- delboy::svm_false_positive_classification(all_val_hits, use_fn = use_fn)
+    
+
 
     # 14. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_samp,

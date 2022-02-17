@@ -10,7 +10,8 @@ get_crispr_gene_level_hits(
   gene_column,
   group_1,
   group_2,
-  target_fdr = 0.1
+  target_fdr = 0.1,
+  dir = "both"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ get_crispr_gene_level_hits(
 \item{group_2}{A character vector naming the columns that belong to group 2.}
 
 \item{target_fdr}{Numeric value (0-1) giving the target FDR. Defaults to 0.1.}
+
+\item{dir}{A character string specifying which end of the fold change distribution to test: \code{both} (default), \code{pos}, \code{neg}.}
 }
 \value{
 An object of class \code{delboy_crispr_hits} which is a list containing the following components:
