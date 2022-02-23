@@ -47,7 +47,7 @@ expand_logfc_guides <- function(data, gene_col, lfc_col, med_lfc, lfc_half_windo
         dplyr::mutate(mean_dev_lfc = !! lfc_sym - mean(!! lfc_sym, na.rm = T)) %>%
         dplyr::filter(!is.na(mean_dev_lfc))
       if(nrow(tfv) < 2) next
-      # Use median deviations to generate sample of logFC values for this gene.
+      # Use mean deviations to generate sample of logFC values for this gene.
       ret <- rbind(ret, data.frame(Gene = tgene, num = i, logFC = tfc + tfv$mean_dev_lfc))
     }
     if(is.null(ret) || nrow(ret) == 0) stop("unable to find any logFCs satisfying the criteria")
