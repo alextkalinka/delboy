@@ -54,6 +54,7 @@ calc_fdr_threshold <- function(data, metric_column, hit_class_column, target_fdr
   tryCatch({
     metric_sym <- rlang::sym(metric_column)
     hit_sym <- rlang::sym(hit_class_column)
+    data %<>% dplyr::filter(!! hit_sym != "False_Negative")
     neg <- ifelse(median(unlist(data[,metric_column]),na.rm=T) < 0,T,F)
     if(neg || grepl("^sd",metric_column)){
       data %<>% dplyr::arrange(dplyr::desc(!! metric_sym))
@@ -77,6 +78,7 @@ calc_fdr_threshold <- function(data, metric_column, hit_class_column, target_fdr
       if(tfdr < target_fdr){
         if(i > 1){
           mb <- unlist(data_fp[i-1, metric_column], use.names = F)
+          # If prior FP had FDR > target, use linear interpol to find metric value corresponding to target FDR.
           if(runn_fdr > target_fdr){
             thr <- .linear_interpol(tfdr, mb, runn_fdr, 
                                     unlist(data_fp[i, metric_column], use.names = F), target_fdr)
