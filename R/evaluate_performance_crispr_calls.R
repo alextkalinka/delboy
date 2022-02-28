@@ -1,3 +1,16 @@
+# Helper functions.
+# Map gRNA IDs to sampled genes.
+.map_guide_ids <- function(data_to, data_from, genes_sig){
+  data_to %<>%
+    dplyr::mutate(gene = genes_sig[match(num, names(genes_sig))]) %>%
+    dplyr::group_by(gene) %>%
+    dplyr::mutate(sgRNA = data_from$id[data_from$gene == gene[1]][1:dplyr::n()]) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(!duplicated(sgRNA))
+  return(data_to)
+}
+
+
 #' evaluate_performance_crispr_calls
 #'
 #' Evaluates the performance of `delboy` on CRISPR pooled data by controlling for real signal, and adding known signal (using `seqgendiff`'s binomial-thinning approach) for a sampled number of genes from a logFC distribution with both the number and distribution chosen to match as closely as possible the signal in the real data.
@@ -19,7 +32,8 @@
 #' @return An object of class `delboy_performance_crispr`.
 #' @export
 #' @importFrom seqgendiff thin_diff
-#' @importFrom dplyr select filter mutate group_by ungroup n
+#' @importFrom dplyr %>% select filter mutate group_by ungroup n
+#' @importFrom magrittr %<>%
 #' @importFrom rlang sym !!
 #' @importFrom progress progress_bar
 evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, gene_column, grna_column, lfc_column,
@@ -65,13 +79,9 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
                              length(unique(lfc_samp_df$Gene)), replace = F)
       names(lfc_samp) <- genes_signal
       names(genes_signal) <- 1:length(genes_signal)
+      
       # Map gRNA IDs to genes and filter duplicates (sampled genes could have different numbers of guides).
-      lfc_samp_df %<>%
-        dplyr::mutate(gene = genes_signal[match(num, names(genes_signal))]) %>%
-        dplyr::group_by(gene) %>%
-        dplyr::mutate(sgRNA = data_lfc$id[data_lfc$gene == gene[1]][1:dplyr::n()]) %>%
-        dplyr::ungroup() %>%
-        dplyr::filter(!duplicated(sgRNA))
+      lfc_samp_df <- .map_guide_ids(lfc_samp_df, data_lfc, genes_signal)
 
       lfc_samp_grna <- lfc_samp_df$logFC
       names(lfc_samp_grna) <- lfc_samp_df$sgRNA
@@ -110,7 +120,8 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       comb_pvals <- delboy::combine_harmonic_mean_pvals(deseq2_res, "pvalue", "gene", target_fdr = 0.1)
 
       # 11. Collate TP, FN, and FP into a data frame to aid comparisons.
-      delboy_hit_df <- delboy::make_delboy_crispr_hit_comparison_table(comb_pvals, lfc_samp)
+      delboy_hit_df <- delboy::make_delboy_crispr_hit_comparison_table(comb_pvals, lfc_samp) %>%
+        dplyr::mutate(replicate = i)
       
       all_val_hits <- rbind(all_val_hits, delboy_hit_df)
       deseq[[i]] <- deseq2_res

@@ -1,15 +1,3 @@
-# Helper functions.
-.db_message <- function(msg, color){
-  msg <- paste(msg,"\n",sep="")
-  switch(color,
-         blue = cat(crayon::blue(msg)),
-         red = cat(crayon::red(msg)),
-         green = cat(crayon::green(msg)),
-         magenta = cat(crayon::magenta(msg))
-         )
-}
-
-
 #' run_delboy
 #'
 #' Performs a differential-representation analysis using an elastic-net logistic regression approach for normalized count data that is split into two groups.
