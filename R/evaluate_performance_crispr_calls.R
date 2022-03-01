@@ -96,10 +96,13 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
     fdr_thr <- ifelse(!is.na(metr_ls), 
                       delboy::calc_fdr_threshold(all_val_hits, metr_ls$metric, "hit_type", target_fdr), NA)
     
-    # 10. Calculate AUPrRc.
+    # 10. Re-calculate summary stats after applying threshold.
+    
+    
+    # 11. Calculate AUPrRc.
     
 
-    # 11. Build return object of class 'delboy_performance'.
+    # 12. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_ls,
                 data.bthin = counts.bthin,
                 deseq2_res = deseq,
