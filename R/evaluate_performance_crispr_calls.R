@@ -1,16 +1,3 @@
-# Helper functions.
-# Map gRNA IDs to sampled genes.
-.map_guide_ids <- function(data_to, data_from, genes_sig){
-  data_to %<>%
-    dplyr::mutate(gene = genes_sig[match(num, names(genes_sig))]) %>%
-    dplyr::group_by(gene) %>%
-    dplyr::mutate(sgRNA = data_from$id[data_from$gene == gene[1]][1:dplyr::n()]) %>%
-    dplyr::ungroup() %>%
-    dplyr::filter(!duplicated(sgRNA))
-  return(data_to)
-}
-
-
 #' evaluate_performance_crispr_calls
 #'
 #' Evaluates the performance of `delboy` on CRISPR pooled data by controlling for real signal, and adding known signal (using `seqgendiff`'s binomial-thinning approach) for a sampled number of genes from a logFC distribution with both the number and distribution chosen to match as closely as possible the signal in the real data.
@@ -63,31 +50,27 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
     for(i in 1:num_val_combs){
       pb$tick()
       # 3. Sample logFC values for num_non_null cases.
-      lfc_samples <- delboy::sample_lfc_genes_guides(data_lfc, num_non_null, gene_column, lfc_column,
+      lfc_ls <- delboy::sample_lfc_genes_guides(data_lfc, num_non_null, gene_column, lfc_column,
                                                      lfc, lfc_dens)
-      lfc_samp <- lfc_samples$lfc_samp
-      lfc_samp_grna <- lfc_samples$lfc_samp_grna
+      lfc_samp <- lfc_ls$lfc_samp
+      lfc_samp_grna <- lfc_ls$lfc_samp_grna
       
       # 4. Add logFC signal to signal-corrected data.
       treat_samps <- all_treat_comb[,i]
-      
+      signal_ls <- delboy::add_signal_val_data(data.m, group_1, group_2, treat_samps, 
+                                               lfc_samp_grna, grna_column)
 
-      # 9. Run DESeq2 on bthin data.
-      group_1.v <- colnames(data.bthin %>%
-                              dplyr::select(- !!rlang::sym(grna_column)))[!as.logical(c(design_mat))]
-      group_2.v <- colnames(data.bthin %>%
-                              dplyr::select(- !!rlang::sym(grna_column)))[as.logical(c(design_mat))]
-      
+      # 5. Run DESeq2 on bthin data.
       deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, grna_column, alt_hyp = alt_hyp) %>%
         # Some test results can be NA.
         dplyr::filter(!is.na(pvalue)) %>%
         # Must add a gene column.
         dplyr::mutate(gene = data[match(id, data[,grna_column]),gene_column])
 
-      # 10. Combine gRNA p-values using harmonic meanp approach.
+      # 6. Combine gRNA p-values using harmonic meanp approach.
       comb_pvals <- delboy::combine_harmonic_mean_pvals(deseq2_res, "pvalue", "gene", target_fdr = 0.1)
 
-      # 11. Collate TP, FN, and FP into a data frame to aid comparisons.
+      # 7. Collate TP, FN, and FP into a data frame to aid comparisons.
       delboy_hit_df <- delboy::make_delboy_crispr_hit_comparison_table(comb_pvals, lfc_samp) %>%
         dplyr::mutate(replicate = i)
       
@@ -95,37 +78,35 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       deseq[[i]] <- deseq2_res
       counts.bthin[[i]] <- data.bthin
     }
-    return(list(hits = all_val_hits,
-                deseq2 = deseq,
-                data = counts.bthin))
 
-    # 12. Estimate aggregate FDR across samples.
-    tot_tp <- sum(all_val_hits$hit_type == "True_Positive")
-    tot_fp <- sum(all_val_hits$hit_type == "False_Positive")
-    fdr_est <- 100*tot_fp/(tot_tp + tot_fp)
-    if(is.nan(fdr_est)) fdr_est <- 0
+    # 8. Estimate aggregate FDR across samples.
+    summ_stats <- all_val_hits %>%
+      dplyr::summarise(tot_tp = sum(all_val_hits$hit_type == "True_Positive"),
+                       tot_fp = sum(all_val_hits$hit_type == "False_Positive"),
+                       tot_fn = sum(all_val_hits$hit_type == "False_Negative"),
+                       Sensitivity = 100*tot_tp/(tot_tp + tot_fn),
+                       FDR = 100*tot_fp/(tot_tp + tot_fp),
+                       FDR = ifelse(is.nan(FDR),0,FDR))
     
-    # 13. Is FDR greater than 'target_fdr'? If so, attempt to find threshold value of a summary lfc metric to reduce FDR below target.
-    if(fdr_est > target_fdr){
-      if(tot_tp > 0){
-        
-      }
-    }else{
-      fdr_correction <- NA
+    # 9. Is FDR greater than 'target_fdr'? If so, attempt to find threshold value of a summary lfc metric to reduce FDR below target.
+    metr_ls <- NA
+    if(summ_stats$FDR > target_fdr && summ_stats$tot_tp > 5){
+      metr_ls <- delboy::infer_metric_for_thr(all_val_hits)
     }
+    fdr_thr <- ifelse(!is.na(metr_ls), 
+                      delboy::calc_fdr_threshold(all_val_hits, metr_ls$metric, "hit_type", target_fdr), NA)
+    
+    # 10. Calculate AUPrRc.
     
 
-
-    # 14. Build return object of class 'delboy_performance'.
-    ret <- list(lfc_samp = lfc_samp,
-                lfc_samp_df = lfc_samp_df,
-                data.bthin = data.bthin,
-                deseq2_res = deseq2_res,
-                delboy_hit_table = all_val_hits,
-                svm_validation = svm_validation,
-                num_val_combinations = num_val_combs,
-                all_treat_combinations = all_treat_comb)
-    class(ret) <- "delboy_performance_crispr"
+    # 11. Build return object of class 'delboy_performance'.
+    ret <- list(lfc_samp = lfc_ls,
+                data.bthin = counts.bthin,
+                deseq2_res = deseq,
+                hits = all_val_hits,
+                all_treat_combinations = all_treat_comb,
+                alt_hypothesis = alt_hyp)
+    class(ret) <- "delboy_perf_crispr"
   },
   error = function(e) stop(paste("unable to evaluate performance of delboy crispr:",e))
   )

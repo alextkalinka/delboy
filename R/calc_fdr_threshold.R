@@ -74,7 +74,6 @@ calc_fdr_threshold <- function(data, metric_column, hit_class_column, target_fdr
       thr <- unlist(data_fp[i, metric_column], use.names = F)
       tfdr <- .calc_fdr(data, metric_sym, hit_sym, thr, dir)
       any_tp <- .any_tp(data, metric_sym, hit_sym, thr, dir)
-      cat(tfdr,"\n")
       if(tfdr < target_fdr){
         if(i > 1){
           mb <- unlist(data_fp[i-1, metric_column], use.names = F)

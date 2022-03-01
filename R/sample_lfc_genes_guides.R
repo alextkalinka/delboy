@@ -1,3 +1,16 @@
+# Helper functions.
+# Map gRNA IDs to sampled genes.
+.map_guide_ids <- function(data_to, data_from, genes_sig){
+  data_to %<>%
+    dplyr::mutate(gene = genes_sig[match(num, names(genes_sig))]) %>%
+    dplyr::group_by(gene) %>%
+    dplyr::mutate(sgRNA = data_from$id[data_from$gene == gene[1]][1:dplyr::n()]) %>%
+    dplyr::ungroup() %>%
+    dplyr::filter(!duplicated(sgRNA))
+  return(data_to)
+}
+
+
 #' sample_lfc_genes_guides
 #'
 #' For performance estimation, this function samples logFC values, as well as genes and guides to add this signal to.
