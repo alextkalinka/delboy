@@ -22,7 +22,7 @@
 #' @param gene_column A character string naming the column containing gene names.
 #' @param grna_column A character string naming the column containing gRNA IDs.
 #' @param lfc_column A character string naming the logFC column in `data_lfc`.
-#' @param max.iter An integer value indicating the maximum number of validation samples.
+#' @param max.iter An integer value indicating the maximum number of validation sample combinations..
 #' @param num_non_null An integer value indicating the number of genes to add signal to.
 #' @param lfc A vector of logFC values for non-null cases.
 #' @param lfc_dens A vector of density estimates for the logFC values given in `lfc`.
@@ -46,16 +46,9 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
 
     # 2. All combinations of treatment samples (preserving the number of treatment samples in original data [length(group_2)]).
     all_treat_comb <- delboy::all_combinations_treat_samples(c(group_1, group_2), length(group_2))
-    tot_val_combs <- ncol(all_treat_comb)
-    if(!is.null(max.iter)){
-      num_val_combs <- min(max.iter, tot_val_combs)
-      # Try to use maximally different sets of samples.
-      val_inds <- seq(1,tot_val_combs, by = ceiling(tot_val_combs/num_val_combs))
-      all_treat_comb <- all_treat_comb[,val_inds]
-    }else{
-      num_val_combs <- ncol(all_treat_comb)
-    }
-    
+    all_treat_comb <- delboy::max_diff_val_samples(all_treat_comb, max.iter)
+    num_val_combs <- ncol(all_treat_comb)
+
     all_val_hits <- NULL
     all_val_perf <- NULL
     deseq <- list()
@@ -66,7 +59,7 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
       total = num_val_combs, clear = FALSE, width = 60)
     pb$tick(0)
     
-    # Multiple val samples to improve SVM estimate.
+    # Multiple val samples to improve performance estimate.
     for(i in 1:num_val_combs){
       pb$tick()
       # 3. Sample logFC values for num_non_null cases.

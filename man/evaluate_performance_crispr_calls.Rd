@@ -35,7 +35,7 @@ evaluate_performance_crispr_calls(
 
 \item{lfc_column}{A character string naming the logFC column in \code{data_lfc}.}
 
-\item{max.iter}{An integer value indicating the maximum number of validation samples.}
+\item{max.iter}{An integer value indicating the maximum number of validation sample combinations..}
 
 \item{num_non_null}{An integer value indicating the number of genes to add signal to.}
 

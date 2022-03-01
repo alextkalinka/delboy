@@ -14,7 +14,7 @@ adjust_nonnull_lfc_estimates <- function(res, filter_prop = 0.05){
   tryCatch({
     if(!dplyr::between(filter_prop,0,1) && filter_prop < 1) 
       stop(paste("''filter_prop' must be in the range [0-1), got:",filter_prop))
-    # 1. Filter out low-abundance genes to stabilise estimates.
+    # 1. Filter out low-abundance genes to stabilise non-null estimate.
     lfc <- res$hmp_gene_pos
     ab_thr <- stats::quantile(lfc$mean_baseMean, probs = filter_prop)
     lfc %<>%
