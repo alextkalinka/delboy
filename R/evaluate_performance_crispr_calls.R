@@ -15,7 +15,7 @@
 #'
 #' Evaluates the performance of `delboy` on CRISPR pooled data by controlling for real signal, and adding known signal (using `seqgendiff`'s binomial-thinning approach) for a sampled number of genes from a logFC distribution with both the number and distribution chosen to match as closely as possible the signal in the real data.
 #'
-#' @param data A data frame of normalized (and batch-corrected, if necessary) counts (at the gRNA level) for a set of samples with the true signal controlled (by, for example, batch-correcting it).
+#' @param data A data frame of normalized counts (at the gRNA level) for a set of samples with the true signal controlled.
 #' @param data_lfc A data frame of logFC estimates for `data`.
 #' @param group_1 A character vector naming the columns that belong to group 1.
 #' @param group_2 A character vector naming the columns that belong to group 2.
@@ -63,39 +63,14 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
     for(i in 1:num_val_combs){
       pb$tick()
       # 3. Sample logFC values for num_non_null cases.
-      lfc_samp <- sample(lfc, num_non_null, prob = lfc_dens/sum(lfc_dens), replace = T)
-      # We want the variance of logFC values to reflect the sampled logFC values.
-      lfc_samp_df <- delboy::expand_logfc_guides(data_lfc, gene_column, lfc_column, lfc_samp)
-
-      # 4. Sample genes and guides to add signal to.
-      genes_signal <- sample(unique(unlist(data[,gene_column],use.names = F)), 
-                             length(unique(lfc_samp_df$Gene)), replace = F)
-      names(lfc_samp) <- genes_signal
-      names(genes_signal) <- 1:length(genes_signal)
+      lfc_samples <- delboy::sample_lfc_genes_guides(data_lfc, num_non_null, gene_column, lfc_column,
+                                                     lfc, lfc_dens)
+      lfc_samp <- lfc_samples$lfc_samp
+      lfc_samp_grna <- lfc_samples$lfc_samp_grna
       
-      # Map gRNA IDs to genes and filter duplicates (sampled genes could have different numbers of guides).
-      lfc_samp_df <- .map_guide_ids(lfc_samp_df, data_lfc, genes_signal)
-
-      lfc_samp_grna <- lfc_samp_df$logFC
-      names(lfc_samp_grna) <- lfc_samp_df$sgRNA
-
-      # 5. Create coefficient matrix for seqgendiff.
-      coef_mat <- delboy::make_coef_matrix(data, lfc_samp_grna, grna_column)
-
-      # 6. Create design matrix for seqgendiff.
+      # 4. Add logFC signal to signal-corrected data.
       treat_samps <- all_treat_comb[,i]
-      design_mat <- delboy::make_design_matrix(group_1, group_2, treat_samps)
-
-      # 7. Add signal using seqgendiff's binomial-thinning approach.
-      thout <- seqgendiff::thin_diff(mat = data.m,
-                                     design_fixed = design_mat,
-                                     coef_fixed = coef_mat)
-
-      # 8. Prep bthin matrix for use in DiffExp analyses.
-      data.bthin <- delboy::prep_bthin_matrix_diffrep(data, thout$mat,
-                                                      colnames(data.m),
-                                                      as.logical(c(design_mat)),
-                                                      grna_column)
+      
 
       # 9. Run DESeq2 on bthin data.
       group_1.v <- colnames(data.bthin %>%

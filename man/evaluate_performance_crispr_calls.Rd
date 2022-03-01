@@ -21,7 +21,7 @@ evaluate_performance_crispr_calls(
 )
 }
 \arguments{
-\item{data}{A data frame of normalized (and batch-corrected, if necessary) counts (at the gRNA level) for a set of samples with the true signal controlled (by, for example, batch-correcting it).}
+\item{data}{A data frame of normalized counts (at the gRNA level) for a set of samples with the true signal controlled.}
 
 \item{data_lfc}{A data frame of logFC estimates for \code{data}.}
 
