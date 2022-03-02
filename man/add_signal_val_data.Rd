@@ -6,6 +6,7 @@
 \usage{
 add_signal_val_data(
   data,
+  data.m,
   group_1,
   group_2,
   treat_samps,
@@ -15,6 +16,8 @@ add_signal_val_data(
 }
 \arguments{
 \item{data}{A data frame of normalized counts (at the gRNA level) for a set of samples with the true signal controlled.}
+
+\item{data.m}{A matrix equivalent of \code{data}.}
 
 \item{group_1}{A character vector naming the columns that belong to group 1.}
 

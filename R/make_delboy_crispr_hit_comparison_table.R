@@ -13,18 +13,17 @@ make_delboy_crispr_hit_comparison_table <- function(comb_pvals, lfc_samp){
     if(!"gene" %in% colnames(comb_pvals)) stop("unable to find 'gene' column in 'comb_pvals'")
     hits <- comb_pvals$gene[comb_pvals$significant_hit]
     all_hits <- unique(c(names(lfc_samp), hits))
-    TP <- names(lfc_samp)[names(lfc_samp) %in% hits]
-    FN <- names(lfc_samp)[!names(lfc_samp) %in% hits]
-    FP <- hits[!hits %in% names(lfc_samp)]
+    tp <- names(lfc_samp)[names(lfc_samp) %in% hits]
+    fn <- names(lfc_samp)[!names(lfc_samp) %in% hits]
+    fp <- hits[!hits %in% names(lfc_samp)]
     ret <- comb_pvals %>%
       dplyr::filter(gene %in% all_hits) %>%
       dplyr::mutate(log10_baseExpr = log10(mean_baseMean),
                     abs_log2FoldChange = abs(mean_log2FoldChange),
-                    hit_type = dplyr::case_when(gene %in% TP ~ "True_Positive",
-                                                gene %in% FN ~ "False_Negative",
-                                                gene %in% FP ~ "False_Positive"),
-                    hit_type = factor(hit_type,levels=c("True_Positive","False_Negative",
-                                                        "False_Positive")),
+                    hit_type = dplyr::case_when(gene %in% tp ~ "True_Positive",
+                                                gene %in% fn ~ "False_Negative",
+                                                gene %in% fp ~ "False_Positive",
+                                                TRUE ~ "Not_hit"),
                     lfc_true_mean = lfc_samp[match(gene, names(lfc_samp))])
   },
   error = function(e) stop(paste("unable to build delboy-DESeq2 crispr comparison data frame:",e))

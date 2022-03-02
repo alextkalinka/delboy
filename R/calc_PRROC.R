@@ -31,8 +31,8 @@ calc_PRROC <- function(data, score_col, group_col = NULL){
     prc <- as.data.frame(pr$curve) %>%
       dplyr::rename(Recall = V1, Precision = V2, !!sc := V3) %>%
       dplyr::mutate(AUPrRc = pr$auc.davis.goadrich,
-                    Sensitivity_FDR_10pct = Recall[which(abs(Precision-0.9)==min(abs(Precision-0.9)))[1]],
-                    Sensitivity_FDR_5pct = Recall[which(abs(Precision-0.95)==min(abs(Precision-0.95)))[1]])
+                    Sensitivity_FDR_10pct = 100*Recall[which(abs(Precision-0.9)==min(abs(Precision-0.9)))[1]],
+                    Sensitivity_FDR_5pct = 100*Recall[which(abs(Precision-0.95)==min(abs(Precision-0.95)))[1]])
     if(!is.null(group_col))
       prc %<>% dplyr::mutate(!!rlang::sym(group_col) := unlist((data %>% dplyr::select(!!rlang::sym(group_col)))[,1])[1])
   },

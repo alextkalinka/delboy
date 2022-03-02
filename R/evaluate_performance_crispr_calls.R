@@ -19,9 +19,7 @@
 #' @return An object of class `delboy_performance_crispr`.
 #' @export
 #' @importFrom seqgendiff thin_diff
-#' @importFrom dplyr %>% select filter mutate group_by ungroup n
-#' @importFrom magrittr %<>%
-#' @importFrom rlang sym !!
+#' @importFrom dplyr %>% mutate filter
 #' @importFrom progress progress_bar
 evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2, 
                                               gene_column, grna_column, lfc_column,
@@ -59,19 +57,21 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2,
       
       # 4. Add logFC signal to signal-corrected data.
       treat_samps <- all_treat_comb[,i]
-      signal_ls <- delboy::add_signal_val_data(data.m, group_1, group_2, treat_samps, 
+      sig_ls <- delboy::add_signal_val_data(data, data.m, group_1, group_2, treat_samps, 
                                                lfc_samp_grna, grna_column)
 
       # 5. Run DESeq2 on bthin data.
-      deseq2_res <- delboy::run_deseq2(data.bthin, group_1.v, group_2.v, grna_column, alt_hyp = alt_hyp) %>%
+      deseq2_res <- delboy::run_deseq2(sig_ls$data.bthin, sig_ls$group_1, sig_ls$group_2, 
+                                       grna_column, alt_hyp = alt_hyp) %>%
         # Some test results can be NA.
         dplyr::filter(!is.na(pvalue)) %>%
         # Must add a gene column.
         dplyr::mutate(gene = data[match(id, data[,grna_column]),gene_column])
 
       # 6. Combine gRNA p-values using harmonic meanp approach.
-      comb_pvals <- delboy::combine_harmonic_mean_pvals(deseq2_res, "pvalue", "gene", target_fdr = 0.1) %>%
-        dplyr::mutate(TP = gene %in% names(lfc_samp), 
+      comb_pvals <- delboy::combine_harmonic_mean_pvals(deseq2_res, "pvalue", "gene", target_fdr = target_fdr) %>%
+        dplyr::mutate(replicate = i,
+                      TP = gene %in% names(lfc_samp), 
                       log10_pvalue = -log10(pvalue.harmonic_mean))
 
       # 7. Collate TP, FN, and FP into a data frame to aid comparisons.
@@ -81,43 +81,45 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2,
       all_val_hits <- rbind(all_val_hits, delboy_hit_df)
       all_comb_pvals <- rbind(all_comb_pvals, comb_pvals)
       deseq[[i]] <- deseq2_res
-      counts.bthin[[i]] <- data.bthin
+      counts.bthin[[i]] <- sig_ls$data.bthin
     }
 
     # 8. Estimate aggregate FDR across samples.
-    summ_stats <- delboy::calc_perf_stats(all_val_hits)
-    
+    summ_stats <- delboy::calc_perf_stats(all_val_hits) %>%
+      dplyr::mutate(Thr_FDR_applied = F)
+
     # 9. If FDR greater than 'target_fdr', attempt to find threshold value of a summary lfc metric to reduce FDR below target.
     metr_ls <- NA
-    if(summ_stats$FDR > target_fdr && summ_stats$tot_tp > 5){
+    if(summ_stats$FDR > target_fdr && summ_stats$tot_fp > 5){
       metr_ls <- delboy::infer_metric_for_thr(all_val_hits)
     }
-    fdr_thr <- ifelse(!is.na(metr_ls), 
+    fdr_thr <- ifelse(is.list(metr_ls), 
                       delboy::calc_fdr_threshold(all_val_hits, metr_ls$metric, "hit_type", target_fdr), NA)
     
     # 10. Re-calculate summary stats after applying threshold.
     if(!is.na(fdr_thr)){
-      all_val_hits.thr <- delboy::apply_fdr_thr_val_hits(all_val_hits, metr_ls$metric, metr_ls$fdr_thr)
-      summ_stats.thr <- delboy::calc_perf_stats(all_val_hits.thr)
+      all_val_hits.thr <- delboy::apply_fdr_thr_val_hits(all_val_hits, metr_ls$metric, fdr_thr)
+      summ_stats <- rbind(summ_stats, delboy::calc_perf_stats(all_val_hits.thr) %>%
+        dplyr::mutate(Thr_FDR_applied = T))
     }
     
-    # 11. Calculate AUPrRc and combine filtered and un-filtered performance estimates.
+    # 11. Calculate AUPrRc.
     prr <- delboy::calc_PRROC(all_comb_pvals, "log10_pvalue")
     summ_stats$AUPrRc <- prr$AUPrRc[1]
-    if(!is.na(fdr_thr)){
-      prr.thr <- delboy::calc_PRROC(all_comb_pvals, "log10_pvalue")
-      summ_stats.thr$AUPrRc <- prr.thr$AUPrRc[1]
-    }
+    summ_stats$Sensitivity_FDR_10pct <- prr$Sensitivity_FDR_10pct[1]
+    summ_stats$Sensitivity_FDR_5pct <- prr$Sensitivity_FDR_5pct[1]
 
     # 12. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_ls,
                 data.bthin = counts.bthin,
                 deseq2_res = deseq,
+                comb_pvals = all_comb_pvals,
                 hits = all_val_hits,
                 metr_fdr_thr = metr_ls,
                 fdr_threshold = fdr_thr,
-                perf_summary = summ_stats,
-                prroc = ,
+                perf_estimate_percent = summ_stats,
+                prroc = prr,
+                AUPrRc = prr$AUPrRc[1],
                 all_treat_combinations = all_treat_comb,
                 alt_hypothesis = alt_hyp)
     class(ret) <- "delboy_perf_crispr"

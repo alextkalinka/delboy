@@ -3,6 +3,7 @@
 #' For performance estimation, this function adds logFC signal to a known set of genes and guides in signal-controlled count data.
 #'
 #' @param data A data frame of normalized counts (at the gRNA level) for a set of samples with the true signal controlled.
+#' @param data.m A matrix equivalent of `data`.
 #' @param group_1 A character vector naming the columns that belong to group 1.
 #' @param group_2 A character vector naming the columns that belong to group 2.
 #' @param treat_samps A character vector naming the treatment samples in `data`.
@@ -21,7 +22,7 @@
 #' @export
 #' @importFrom dplyr %>% select
 #' @importFrom rlang sym !!
-add_signal_val_data <- function(data, group_1, group_2, treat_samps, lfc_samp_grna, grna_column){
+add_signal_val_data <- function(data, data.m, group_1, group_2, treat_samps, lfc_samp_grna, grna_column){
   tryCatch({
     # 1. Create coefficient matrix for seqgendiff.
     coef_mat <- delboy::make_coef_matrix(data, lfc_samp_grna, grna_column)

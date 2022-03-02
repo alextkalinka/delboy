@@ -14,9 +14,9 @@
 apply_fdr_thr_val_hits <- function(data, filter_column, filter_thr){
   tryCatch({
     if(filter_column == "mean_log2FoldChange"){
-      data %<>% dplyr::filter(!! rlang::sym(filter_column) > filter_thr)
+      data %<>% dplyr::filter((!! rlang::sym(filter_column) > filter_thr | hit_type == "False_Negative"))
     }else if(filter_column == "sd_log2FoldChange"){
-      data %<>% dplyr::filter(!! rlang::sym(filter_column) < filter_thr)
+      data %<>% dplyr::filter((!! rlang::sym(filter_column) < filter_thr | hit_type == "False_Negative"))
     }else{
       stop(paste("expecting 'filter_column' to be one of: 'mean_log2FoldChange' or 'sd_log2FoldChange', got:",filter_column))
     }
