@@ -5,20 +5,33 @@
 #' @param data A data frame as produced by `delboy::make_delboy_crispr_hit_comparison_table`.
 #' @param filter_column A character string naming a column to be filtered.
 #' @param filter_thr A numeric threshold for `filter_column`.
+#' @param input_type A character string naming the input type: `hits` (default), or `all`.
 #'
 #' @return A data frame.
 #' @importFrom dplyr filter
 #' @importFrom magrittr %<>%
 #' @importFrom rlang sym !!
 #' @export
-apply_fdr_thr_val_hits <- function(data, filter_column, filter_thr){
+apply_fdr_thr_val_hits <- function(data, filter_column, filter_thr, input_type = "hits"){
   tryCatch({
-    if(filter_column == "mean_log2FoldChange"){
-      data %<>% dplyr::filter((!! rlang::sym(filter_column) > filter_thr | hit_type == "False_Negative"))
-    }else if(filter_column == "sd_log2FoldChange"){
-      data %<>% dplyr::filter((!! rlang::sym(filter_column) < filter_thr | hit_type == "False_Negative"))
+    if(input_type == "hits"){
+      if(filter_column == "mean_log2FoldChange"){
+        data %<>% dplyr::filter((!! rlang::sym(filter_column) > filter_thr | hit_type == "False_Negative"))
+      }else if(filter_column == "sd_log2FoldChange"){
+        data %<>% dplyr::filter((!! rlang::sym(filter_column) < filter_thr | hit_type == "False_Negative"))
+      }else{
+        stop(paste("expecting 'filter_column' to be one of: 'mean_log2FoldChange' or 'sd_log2FoldChange', got:",filter_column))
+      }
+    }else if(input_type == "all"){
+      if(filter_column == "mean_log2FoldChange"){
+        data %<>% dplyr::filter(!(!! rlang::sym(filter_column) < filter_thr & significant_hit))
+      }else if(filter_column == "sd_log2FoldChange"){
+        data %<>% dplyr::filter(!(!! rlang::sym(filter_column) > filter_thr & significant_hit))
+      }else{
+        stop(paste("expecting 'filter_column' to be one of: 'mean_log2FoldChange' or 'sd_log2FoldChange', got:",filter_column))
+      }
     }else{
-      stop(paste("expecting 'filter_column' to be one of: 'mean_log2FoldChange' or 'sd_log2FoldChange', got:",filter_column))
+      stop(paste("'input_type' must be one of 'hits' or 'all', got:",input_type))
     }
   },
   error = function(e) stop(paste("unable to apply FDR threshold to validation hits:",e))

@@ -46,6 +46,7 @@
 #' @return A data frame.
 #' @importFrom dplyr %>% arrange desc filter summarise n mutate
 #' @importFrom rlang sym !!
+#' @importFrom magrittr %<>%
 #' @export
 calc_fdr_threshold <- function(data, metric_column, hit_class_column, target_fdr){
   if(!metric_column %in% colnames(data)) stop(paste("can't find",metric_column,"in data"))
@@ -66,24 +67,14 @@ calc_fdr_threshold <- function(data, metric_column, hit_class_column, target_fdr
     data_fp <- data %>%
       dplyr::filter(!! hit_sym == "False_Positive")
     if(nrow(data_fp) == 0) stop("no false positives found in data")
-    # Loop over FPs and when FDR > 0.1 stop and calculate the metric threshold.
+    # Loop over FPs and when FDR > 0.1 stop and extract the metric threshold.
     runn_fdr <- target_fdr+0.1
     any_tp <- FALSE
     i <- 1
-    while((runn_fdr > target_fdr || !any_tp) || i > nrow(data_fp)){
-      thr <- unlist(data_fp[i, metric_column], use.names = F)
+    while((runn_fdr > target_fdr || !any_tp) && i <= nrow(data_fp)){
+      thr <- unlist(data_fp[i, metric_column], use.names = F)+0.01
       tfdr <- .calc_fdr(data, metric_sym, hit_sym, thr, dir)
       any_tp <- .any_tp(data, metric_sym, hit_sym, thr, dir)
-      if(tfdr < target_fdr){
-        if(i > 1){
-          mb <- unlist(data_fp[i-1, metric_column], use.names = F)
-          # If prior FP had FDR > target, use linear interpol to find metric value corresponding to target FDR.
-          if(runn_fdr > target_fdr){
-            thr <- .linear_interpol(tfdr, mb, runn_fdr, 
-                                    unlist(data_fp[i, metric_column], use.names = F), target_fdr)
-          }
-        }
-      }
       runn_fdr <- tfdr
       i <- i+1
     }

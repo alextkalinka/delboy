@@ -4,7 +4,7 @@
 \alias{apply_fdr_thr_val_hits}
 \title{apply_fdr_thr_val_hits}
 \usage{
-apply_fdr_thr_val_hits(data, filter_column, filter_thr)
+apply_fdr_thr_val_hits(data, filter_column, filter_thr, input_type = "hits")
 }
 \arguments{
 \item{data}{A data frame as produced by \code{delboy::make_delboy_crispr_hit_comparison_table}.}
@@ -12,6 +12,8 @@ apply_fdr_thr_val_hits(data, filter_column, filter_thr)
 \item{filter_column}{A character string naming a column to be filtered.}
 
 \item{filter_thr}{A numeric threshold for \code{filter_column}.}
+
+\item{input_type}{A character string naming the input type: \code{hits} (default), or \code{all}.}
 }
 \value{
 A data frame.

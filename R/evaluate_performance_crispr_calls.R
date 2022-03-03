@@ -100,14 +100,22 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2,
     if(!is.na(fdr_thr)){
       all_val_hits.thr <- delboy::apply_fdr_thr_val_hits(all_val_hits, metr_ls$metric, fdr_thr)
       summ_stats <- rbind(summ_stats, delboy::calc_perf_stats(all_val_hits.thr) %>%
-        dplyr::mutate(Thr_FDR_applied = T))
+        dplyr::mutate(Thr_FDR_applied = T)) %>%
+        dplyr::select(Thr_FDR_applied, dplyr::everything())
     }
     
     # 11. Calculate AUPrRc.
-    prr <- delboy::calc_PRROC(all_comb_pvals, "log10_pvalue")
-    summ_stats$AUPrRc <- prr$AUPrRc[1]
-    summ_stats$Sensitivity_FDR_10pct <- prr$Sensitivity_FDR_10pct[1]
-    summ_stats$Sensitivity_FDR_5pct <- prr$Sensitivity_FDR_5pct[1]
+    prr <- delboy::calc_PRROC(all_comb_pvals, "log10_pvalue") %>%
+      dplyr::mutate(type = "all")
+    if(!is.na(fdr_thr)){
+      all_comb_pvals.thr <- delboy::apply_fdr_thr_val_hits(all_comb_pvals, metr_ls$metric, fdr_thr, "all")
+      prr.thr <- delboy::calc_PRROC(all_comb_pvals.thr, "log10_pvalue") %>%
+        dplyr::mutate(type = "fdr_filter")
+      prr <- rbind(prr, prr.thr)
+    }
+    summ_stats$AUPrRc <- c(prr$AUPrRc[1], prr.thr$AUPrRc[1])
+    summ_stats$Sensitivity_FDR_10pct <- c(prr$Sensitivity_FDR_10pct[1], prr.thr$Sensitivity_FDR_10pct[1])
+    summ_stats$Sensitivity_FDR_5pct <- c(prr$Sensitivity_FDR_5pct[1], prr.thr$Sensitivity_FDR_5pct[1])
 
     # 12. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_ls,
@@ -119,7 +127,6 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2,
                 fdr_threshold = fdr_thr,
                 perf_estimate_percent = summ_stats,
                 prroc = prr,
-                AUPrRc = prr$AUPrRc[1],
                 all_treat_combinations = all_treat_comb,
                 alt_hypothesis = alt_hyp)
     class(ret) <- "delboy_perf_crispr"
