@@ -10,7 +10,8 @@
 #' @param gene_column A character string naming the column containing gene names.
 #' @param target_fdr Numeric value (0-1) giving the target FDR. Defaults to 0.1.
 #' @param normalize_method A character string naming the read depth normalization method: `relative` (default) or `median_ratio`.
-#' @param max.iter An integer value indicating the maximum number of validation sample combinations (default = 3). `NULL` indicates all sample combinations should be taken. `NA` indicates that the validation step should be skipped.
+#' @param max.iter An integer value indicating the maximum number of validation sample combinations (default = 3). `NULL` indicates all sample combinations should be taken. `NULL` indicates that the validation step should be skipped.
+#' @param filter_prop A numerical value (0-1) to filter the lowest abundance genes when estimating the non-null logFC distribution for performance estimation. Defaults to 0.05.
 #'
 #' @return A data frame.
 #' @importFrom dplyr %>% arrange desc filter summarise n mutate
@@ -18,7 +19,7 @@
 #' @importFrom utils read.delim
 #' @export
 run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_column, gene_column, 
-                              target_fdr = 0.1, normalize_method = "relative", max.iter = 3){
+                              target_fdr = 0.1, normalize_method = "relative", max.iter = 3, filter_prop = 0.05){
   tryCatch({
     # Random samples taken.
     set.seed(1)
@@ -38,7 +39,7 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     .check_data_inputs(data, controls, treatments, gene_column, grna_column)
     
     ### 2B. Remove any irrelevant columns and re-order sample columns by groups.
-    data.n <- data[,c(grna_column, gene_column, controls, treatments)]
+    data <- data[,c(grna_column, gene_column, controls, treatments)]
     
     ### 3. Normalize read depth.
     if(normalize_method == "relative"){
@@ -50,17 +51,33 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     }
     
     ### 4. Run DESeq2 and harmonic mean p-value combination.
-    res <- delboy::get_crispr_gene_level_hits(data.n, grna_column, gene_column, controls, treatments, target_fdr)
+    res <- delboy::get_crispr_gene_level_hits(data, grna_column, gene_column, controls, treatments, target_fdr)
     
-    ### 5. Estimate performance and learn FDR threshold.
-    if(!is.na(max.iter)){
-      
-      ## Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
-      el <- delboy::adjust_nonnull_lfc_estimates(res, filter_prop = 0.05)
-      
+    ### 5. Estimate performance and learn a summary logfc metric threshold to reduce FDR below the target FDR.
+    if(!is.null(max.iter)){
+      # Correct signal associated with known sample groupings.
+      data.sc <- delboy::prep_val_data(data, controls, treatments, "sgRNA", "gene", NULL)
+      # Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
+      el <- delboy::adjust_nonnull_lfc_estimates(res, filter_prop = filter_prop)
+      # Positive end.
+      perf_eval.pos <- delboy::evaluate_performance_crispr_calls(data.sc, res$deseq2_pos, controls, treatments,
+                                                                 "gene", "sgRNA", "log2FoldChange",
+                                                                 max.iter, 200, el$non_null.pos.lfc, el$non_null.pos.dens,
+                                                                 "greater")
+      # Negative end.
+      perf_eval.neg <- delboy::evaluate_performance_crispr_calls(data.sc, res$deseq2_neg, controls, treatments,
+                                                                 "gene", "sgRNA", "log2FoldChange",
+                                                                 max.iter, 200, el$non_null.neg.lfc, el$non_null.neg.dens,
+                                                                 "less")
     }else{
-      
+      el <- perf_eval.pos <- perf_eval.neg <- NA
     }
+    
+    ### 6. Combine original and validation data and apply any FDR thresholds.
+    orig_val_hits.pos <- delboy::combine_hits_orig_val_data(res$hmp_gene_pos, perf_eval.pos$hits)
+    orig_val_hits.neg <- delboy::combine_hits_orig_val_data(res$hmp_gene_neg, perf_eval.neg$hits)
+    
+    # Mark up any predicted FPs using any logfc FDR thresholds from the validation data.
     
     
   },

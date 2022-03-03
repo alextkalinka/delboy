@@ -13,7 +13,8 @@ run_delboy_crispr(
   gene_column,
   target_fdr = 0.1,
   normalize_method = "relative",
-  max.iter = 3
+  max.iter = 3,
+  filter_prop = 0.05
 )
 }
 \arguments{
@@ -33,7 +34,9 @@ run_delboy_crispr(
 
 \item{normalize_method}{A character string naming the read depth normalization method: \code{relative} (default) or \code{median_ratio}.}
 
-\item{max.iter}{An integer value indicating the maximum number of validation sample combinations (default = 3). \code{NULL} indicates all sample combinations should be taken. \code{NA} indicates that the validation step should be skipped.}
+\item{max.iter}{An integer value indicating the maximum number of validation sample combinations (default = 3). \code{NULL} indicates all sample combinations should be taken. \code{NULL} indicates that the validation step should be skipped.}
+
+\item{filter_prop}{A numerical value (0-1) to filter the lowest abundance genes when estimating the non-null logFC distribution for performance estimation. Defaults to 0.05.}
 }
 \value{
 A data frame.

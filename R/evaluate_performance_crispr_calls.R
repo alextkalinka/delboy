@@ -51,14 +51,14 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2,
       pb$tick()
       # 3. Sample logFC values for num_non_null cases.
       lfc_ls <- delboy::sample_lfc_genes_guides(data_lfc, num_non_null, gene_column, lfc_column,
-                                                     lfc, lfc_dens)
+                                                lfc, lfc_dens)
       lfc_samp <- lfc_ls$lfc_samp
       lfc_samp_grna <- lfc_ls$lfc_samp_grna
       
       # 4. Add logFC signal to signal-corrected data.
       treat_samps <- all_treat_comb[,i]
       sig_ls <- delboy::add_signal_val_data(data, data.m, group_1, group_2, treat_samps, 
-                                               lfc_samp_grna, grna_column)
+                                            lfc_samp_grna, grna_column)
 
       # 5. Run DESeq2 on bthin data.
       deseq2_res <- delboy::run_deseq2(sig_ls$data.bthin, sig_ls$group_1, sig_ls$group_2, 
