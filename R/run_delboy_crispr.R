@@ -78,9 +78,37 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     orig_val_hits.neg <- delboy::combine_hits_orig_val_data(res$hmp_gene_neg, perf_eval.neg$hits)
     
     # Mark up any predicted FPs using any logfc FDR thresholds from the validation data.
+    # Positive.
+    if(!is.na(perf_eval.pos$lfc_fdr_threshold)){
+      res$hmp_gene_pos <- delboy::mark_up_FPs(res$hmp_gene_pos, perf_eval.pos$metr_fdr_thr$metric,
+                                              perf_eval.pos$lfc_fdr_threshold, "greater")
+    }
+    # Negative.
+    if(!is.na(perf_eval.neg$lfc_fdr_threshold)){
+      res$hmp_gene_neg <- delboy::mark_up_FPs(res$hmp_gene_neg, perf_eval.neg$metr_fdr_thr$metric,
+                                              perf_eval.neg$lfc_fdr_threshold, "less")
+    }
+    # Combine pos and neg non-null logFC distribution estimates for plotting.
+    if(!is.na(el)){
+      lfc_distr <- data.frame(lfc = c(el$non_null.pos.lfc, el$non_null.neg.lfc),
+                              dens = c(el$non_null.pos.dens/sum(el$non_null.pos.dens),
+                                       el$non_null.neg.dens/sum(el$non_null.neg.dens)),
+                              type = c(rep("pos",length(el$non_null.pos.lfc)), rep("neg",length(el$non_null.neg.lfc))),
+                              stringsAsFactors = F)
+    }else{
+      lfc_distr <- NA
+    }
     
+    ### 7. Build return object.
+    ret <- list(results = res,
+                perf_esitmation = !is.na(max.iter),
+                logfc_nonnull_distr = lfc_distr,
+                perf_estimate_pos = perf_eval.pos,
+                perf_estimate_neg = perf_eval.neg)
+    class(ret) <- "delboy_crispr"
     
   },
   error = function(e) stop(paste("unable to run delboy crispr pipeline:",e))
   )
+  return(ret)
 }

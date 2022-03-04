@@ -19,7 +19,7 @@ apply_fdr_thr_val_hits(
 
 \item{filter_thr}{A numeric threshold for \code{filter_column}.}
 
-\item{dir}{A character string identifying which end of logFC values we are focusing on: \code{neg} or \code{pos}.}
+\item{dir}{A character string identifying which end of logFC values we are focusing on: \code{less} or \code{greater}.}
 
 \item{input_type}{A character string naming the input type: \code{hits} (default), or \code{all}.}
 }

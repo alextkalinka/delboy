@@ -4,14 +4,16 @@
 \alias{mark_up_FPs}
 \title{mark_up_FPs}
 \usage{
-mark_up_FPs(res, filter_column, filter_thr)
+mark_up_FPs(res, filter_column, filter_thr, dir)
 }
 \arguments{
-\item{res}{Output from \code{delboy::get_crispr_gene_level_hits}.}
+\item{res}{Output from \code{delboy::combine_harmonic_mean_pvals}.}
 
 \item{filter_column}{A character string naming the metric against which FPs will be defined.}
 
 \item{filter_thr}{A numeric threshold value to be applied to \code{filter_column}.}
+
+\item{dir}{A character string identifying which end of logFC values we are focusing on: \code{less} or \code{greater}.}
 }
 \value{
 A data frame.
