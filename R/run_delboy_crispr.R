@@ -69,15 +69,14 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
                                                                  "gene", "sgRNA", "log2FoldChange",
                                                                  max.iter, 200, el$non_null.neg.lfc, el$non_null.neg.dens,
                                                                  "less")
+      # Combine original and validation data.
+      orig_val_hits.pos <- delboy::combine_hits_orig_val_data(res$hmp_gene_pos, perf_eval.pos$hits)
+      orig_val_hits.neg <- delboy::combine_hits_orig_val_data(res$hmp_gene_neg, perf_eval.neg$hits)
     }else{
-      el <- perf_eval.pos <- perf_eval.neg <- NA
+      el <- perf_eval.pos <- perf_eval.neg <- orig_val_hits.pos <- orig_val_hits.neg <- NA
     }
     
-    ### 6. Combine original and validation data and apply any FDR thresholds.
-    orig_val_hits.pos <- delboy::combine_hits_orig_val_data(res$hmp_gene_pos, perf_eval.pos$hits)
-    orig_val_hits.neg <- delboy::combine_hits_orig_val_data(res$hmp_gene_neg, perf_eval.neg$hits)
-    
-    # Mark up any predicted FPs using any logfc FDR thresholds from the validation data.
+    ### 6. Mark up any predicted FPs using any logfc FDR thresholds from the validation data.
     # Positive.
     if(!is.na(perf_eval.pos$lfc_fdr_threshold)){
       res$hmp_gene_pos <- delboy::mark_up_FPs(res$hmp_gene_pos, perf_eval.pos$metr_fdr_thr$metric,
@@ -104,7 +103,9 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
                 perf_esitmation = !is.na(max.iter),
                 logfc_nonnull_distr = lfc_distr,
                 perf_estimate_pos = perf_eval.pos,
-                perf_estimate_neg = perf_eval.neg)
+                perf_estimate_neg = perf_eval.neg,
+                comb_orig_valid_hits.pos = orig_val_hits.pos,
+                comb_orig_valid_hits.neg = orig_val_hits.neg)
     class(ret) <- "delboy_crispr"
     
   },
