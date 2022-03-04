@@ -86,19 +86,20 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2,
 
     # 8. Estimate aggregate FDR across samples.
     summ_stats <- delboy::calc_perf_stats(all_val_hits) %>%
-      dplyr::mutate(Thr_FDR_applied = F)
+      dplyr::mutate(Thr_FDR_applied = F) %>%
+      dplyr::select(Thr_FDR_applied, dplyr::everything())
 
     # 9. If FDR greater than 'target_fdr', attempt to find threshold value of a summary lfc metric to reduce FDR below target.
-    metr_ls <- NA
-    if(summ_stats$FDR > target_fdr && summ_stats$tot_fp > 5){
+    metr_ls <- list(metric = NA)
+    if(summ_stats$FDR > 100*target_fdr && summ_stats$tot_fp > 5){
       metr_ls <- delboy::infer_metric_for_thr(all_val_hits)
     }
-    fdr_thr <- ifelse(is.list(metr_ls), 
+    fdr_thr <- ifelse(!is.na(metr_ls$metric), 
                       delboy::calc_fdr_threshold(all_val_hits, metr_ls$metric, "hit_type", target_fdr), NA)
     
     # 10. Re-calculate summary stats after applying threshold.
     if(!is.na(fdr_thr)){
-      all_val_hits.thr <- delboy::apply_fdr_thr_val_hits(all_val_hits, metr_ls$metric, fdr_thr)
+      all_val_hits.thr <- delboy::apply_fdr_thr_val_hits(all_val_hits, metr_ls$metric, fdr_thr, alt_hyp)
       summ_stats <- rbind(summ_stats, delboy::calc_perf_stats(all_val_hits.thr) %>%
         dplyr::mutate(Thr_FDR_applied = T)) %>%
         dplyr::select(Thr_FDR_applied, dplyr::everything())
@@ -108,14 +109,14 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2,
     prr <- delboy::calc_PRROC(all_comb_pvals, "log10_pvalue") %>%
       dplyr::mutate(type = "all")
     if(!is.na(fdr_thr)){
-      all_comb_pvals.thr <- delboy::apply_fdr_thr_val_hits(all_comb_pvals, metr_ls$metric, fdr_thr, "all")
+      all_comb_pvals.thr <- delboy::apply_fdr_thr_val_hits(all_comb_pvals, metr_ls$metric, fdr_thr, alt_hyp, "all")
       prr.thr <- delboy::calc_PRROC(all_comb_pvals.thr, "log10_pvalue") %>%
         dplyr::mutate(type = "fdr_filter")
       prr <- rbind(prr, prr.thr)
     }
-    summ_stats$AUPrRc <- c(prr$AUPrRc[1], prr.thr$AUPrRc[1])
-    summ_stats$Sensitivity_FDR_10pct <- c(prr$Sensitivity_FDR_10pct[1], prr.thr$Sensitivity_FDR_10pct[1])
-    summ_stats$Sensitivity_FDR_5pct <- c(prr$Sensitivity_FDR_5pct[1], prr.thr$Sensitivity_FDR_5pct[1])
+    summ_stats$AUPrRc <- unique(prr$AUPrRc)
+    summ_stats$Sensitivity_FDR_10pct <- unique(prr$Sensitivity_FDR_10pct)
+    summ_stats$Sensitivity_FDR_5pct <- unique(prr$Sensitivity_FDR_5pct)
 
     # 12. Build return object of class 'delboy_performance'.
     ret <- list(lfc_samp = lfc_ls,

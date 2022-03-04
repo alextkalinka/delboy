@@ -16,20 +16,16 @@
 apply_fdr_thr_val_hits <- function(data, filter_column, filter_thr, dir, input_type = "hits"){
   tryCatch({
     if(input_type == "hits"){
-      if(filter_column == "mean_log2FoldChange"){
+      if((filter_column == "mean_log2FoldChange" && dir == "greater")){
         data %<>% dplyr::filter((!! rlang::sym(filter_column) > filter_thr | hit_type == "False_Negative"))
-      }else if(filter_column == "sd_log2FoldChange"){
-        data %<>% dplyr::filter((!! rlang::sym(filter_column) < filter_thr | hit_type == "False_Negative"))
       }else{
-        stop(paste("expecting 'filter_column' to be one of: 'mean_log2FoldChange' or 'sd_log2FoldChange', got:",filter_column))
+        data %<>% dplyr::filter((!! rlang::sym(filter_column) < filter_thr | hit_type == "False_Negative"))
       }
     }else if(input_type == "all"){
-      if(filter_column == "mean_log2FoldChange"){
+      if((filter_column == "mean_log2FoldChange" && dir == "greater")){
         data %<>% dplyr::filter(!(!! rlang::sym(filter_column) < filter_thr & significant_hit))
-      }else if(filter_column == "sd_log2FoldChange"){
-        data %<>% dplyr::filter(!(!! rlang::sym(filter_column) > filter_thr & significant_hit))
       }else{
-        stop(paste("expecting 'filter_column' to be one of: 'mean_log2FoldChange' or 'sd_log2FoldChange', got:",filter_column))
+        data %<>% dplyr::filter(!(!! rlang::sym(filter_column) > filter_thr & significant_hit))
       }
     }else{
       stop(paste("'input_type' must be one of 'hits' or 'all', got:",input_type))

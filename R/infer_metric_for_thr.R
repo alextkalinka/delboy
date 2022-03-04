@@ -18,10 +18,10 @@ infer_metric_for_thr <- function(data){
                        mdn.mlfc_fp = median(mean_log2FoldChange[hit_type=="False_Positive"], na.rm=T),
                        mdn.slfc_tp = median(sd_log2FoldChange[hit_type=="True_Positive"], na.rm=T),
                        mdn.slfc_fp = median(sd_log2FoldChange[hit_type=="False_Positive"], na.rm=T))
-    if(summ$mdn.mlfc_fp < summ$mdn.mlfc_tp && summ$mdn.slfc_fp < summ$mdn.slfc_tp){
+    if(abs(summ$mdn.mlfc_fp) < abs(summ$mdn.mlfc_tp) && summ$mdn.slfc_fp < summ$mdn.slfc_tp){
       # FP mean_logFC and sd_logFC both lower than TP.
       metric <- "mean_log2FoldChange"
-    }else if(summ$mdn.mlfc_fp > summ$mdn.mlfc_tp && summ$mdn.slfc_fp > summ$mdn.slfc_tp){
+    }else if(abs(summ$mdn.mlfc_fp) > abs(summ$mdn.mlfc_tp) && summ$mdn.slfc_fp > summ$mdn.slfc_tp){
       # FP mean_logFC and sd_logFC both greater than TP.
       metric <- "sd_log2FoldChange"
     }else{
