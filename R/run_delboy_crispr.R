@@ -1,3 +1,10 @@
+# Helper functions.
+.print_progress <- function(msg){
+  msg <- paste(date(), "*** delboy:",msg,"\n")
+  cat(msg)
+}
+
+
 #' run_delboy_crispr
 #'
 #' Calculates a threshold value for a given metric to achieve a specified FDR.
@@ -16,10 +23,11 @@
 #' @return A data frame.
 #' @importFrom dplyr %>% arrange desc filter summarise n mutate
 #' @importFrom rlang sym !!
-#' @importFrom utils read.delim
+#' @importFrom utils read.delim packageVersion
 #' @export
 run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_column, gene_column, 
                               target_fdr = 0.1, normalize_method = "relative", max.iter = 3, filter_prop = 0.05){
+  cat(paste("*** delboy version:",utils::packageVersion("delboy"),"\n"))
   tryCatch({
     # Random samples taken.
     set.seed(1)
@@ -35,13 +43,14 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     }
     
     ### 2A. Sanity checks.
-    cat("Checking data...\n")
+    .print_progress("Checking data...\n")
     .check_data_inputs(data, controls, treatments, gene_column, grna_column)
     
     ### 2B. Remove any irrelevant columns and re-order sample columns by groups.
     data <- data[,c(grna_column, gene_column, controls, treatments)]
     
     ### 3. Normalize read depth.
+    .print_progress("Normalizing read depth...\n")
     if(normalize_method == "relative"){
       data <- delboy::normalize_library_depth_relative(data)
     }else if(normalize_method == "median_ratio"){
@@ -50,11 +59,13 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
       stop(paste("'normalize_method' must be one of 'relative' or 'median_ratio', got:",normalize_method))
     }
     
+    .print_progress("Running DESeq2 and combining p-values...\n")
     ### 4. Run DESeq2 and harmonic mean p-value combination.
     res <- delboy::get_crispr_gene_level_hits(data, grna_column, gene_column, controls, treatments, target_fdr)
     
     ### 5. Estimate performance and learn a summary logfc metric threshold to reduce FDR below the target FDR.
     if(!is.null(max.iter)){
+      .print_progress("Estimating algorithm performance...\n")
       # Correct signal associated with known sample groupings.
       data.sc <- delboy::prep_val_data(data, controls, treatments, "sgRNA", "gene", NULL)
       # Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
@@ -77,6 +88,7 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     }
     
     ### 6. Mark up any predicted FPs using any logfc FDR thresholds from the validation data.
+    .print_progress("Finishing up...\n")
     # Positive.
     if(!is.na(perf_eval.pos$lfc_fdr_threshold)){
       res$hmp_gene_pos <- delboy::mark_up_FPs(res$hmp_gene_pos, perf_eval.pos$metr_fdr_thr$metric,
@@ -99,9 +111,12 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     }
     
     ### 7. Build return object.
-    ret <- list(results = res,
+    ret <- list(data.norm = data,
+                results = res,
                 perf_esitmation = !is.na(max.iter),
                 logfc_nonnull_distr = lfc_distr,
+                target_fdr = target_fdr,
+                max.iter = max.iter,
                 perf_estimate_pos = perf_eval.pos,
                 perf_estimate_neg = perf_eval.neg,
                 comb_orig_valid_hits.pos = orig_val_hits.pos,
