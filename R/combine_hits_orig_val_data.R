@@ -12,11 +12,12 @@ combine_hits_orig_val_data <- function(orig_hits, val_hits){
   tryCatch({
     comb <- rbind(orig_hits %>%
                     dplyr::filter(significant_hit) %>%
-                    dplyr::mutate(data_type = "Original"),
+                    dplyr::mutate(hit_type = "Positive", data_type = "Original"),
                   val_hits %>%
                     dplyr::select(-replicate,-TP,-log10_pvalue,
-                                  -log10_baseExpr,-abs_log2FoldChange,-hit_type,-lfc_true_mean) %>%
-                    dplyr::mutate(data_type = "Validation"))
+                                  -log10_baseExpr,-abs_log2FoldChange,-lfc_true_mean) %>%
+                    dplyr::mutate(data_type = "Validation")) %>%
+      dplyr::mutate(hit_type = factor(hit_type, levels=c("True_Positive","False_Negative","False_Positive","Positive")))
   },
   error = function(e) stop(paste("unable to combine hits from original and validation data:",e))
   )

@@ -8,7 +8,6 @@ run_delboy_crispr(
   data,
   controls,
   treatments,
-  filter_cutoff,
   grna_column,
   gene_column,
   target_fdr = 0.1,
@@ -24,8 +23,6 @@ run_delboy_crispr(
 
 \item{treatments}{A character string naming the treatment sample columns.}
 
-\item{filter_cutoff}{A numerical value indicating the cutoff below which (summed across all replicates) a gene will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.}
-
 \item{grna_column}{A character string naming the column containing gene names.}
 
 \item{gene_column}{A character string naming the column containing gene names.}
@@ -39,7 +36,7 @@ run_delboy_crispr(
 \item{filter_prop}{A numerical value (0-1) to filter the lowest abundance genes when estimating the non-null logFC distribution for performance estimation. Defaults to 0.05.}
 }
 \value{
-A data frame.
+An object of class \code{delboy_crispr}.
 }
 \description{
 Calculates a threshold value for a given metric to achieve a specified FDR.

@@ -12,7 +12,6 @@
 #' @param data A data frame containing count data for two different groups and their replicates.
 #' @param controls A character string naming the control sample columns.
 #' @param treatments A character string naming the treatment sample columns.
-#' @param filter_cutoff A numerical value indicating the cutoff below which (summed across all replicates) a gene will be removed from the data. For example, to keep only genes with more than 1 TPM on average across both groups, set the cutoff to 10 if there are 10 replicates in total.
 #' @param grna_column A character string naming the column containing gene names.
 #' @param gene_column A character string naming the column containing gene names.
 #' @param target_fdr Numeric value (0-1) giving the target FDR. Defaults to 0.1.
@@ -20,12 +19,12 @@
 #' @param max.iter An integer value indicating the maximum number of validation sample combinations (default = 3). `NULL` indicates all sample combinations should be taken. `NULL` indicates that the validation step should be skipped.
 #' @param filter_prop A numerical value (0-1) to filter the lowest abundance genes when estimating the non-null logFC distribution for performance estimation. Defaults to 0.05.
 #'
-#' @return A data frame.
+#' @return An object of class `delboy_crispr`.
 #' @importFrom dplyr %>% arrange desc filter summarise n mutate
 #' @importFrom rlang sym !!
 #' @importFrom utils read.delim packageVersion
 #' @export
-run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_column, gene_column, 
+run_delboy_crispr <- function(data, controls, treatments, grna_column, gene_column, 
                               target_fdr = 0.1, normalize_method = "relative", max.iter = 3, filter_prop = 0.05){
   cat(paste("*** delboy version:",utils::packageVersion("delboy"),"\n"))
   tryCatch({
@@ -43,29 +42,29 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     }
     
     ### 2A. Sanity checks.
-    .print_progress("Checking data...\n")
+    .print_progress("Checking data...")
     .check_data_inputs(data, controls, treatments, gene_column, grna_column)
     
     ### 2B. Remove any irrelevant columns and re-order sample columns by groups.
     data <- data[,c(grna_column, gene_column, controls, treatments)]
     
     ### 3. Normalize read depth.
-    .print_progress("Normalizing read depth...\n")
+    .print_progress("Normalizing read depth...")
     if(normalize_method == "relative"){
-      data <- delboy::normalize_library_depth_relative(data)
+      data <- delboy::normalize_library_depth_relative(data, NULL)
     }else if(normalize_method == "median_ratio"){
       data <- delboy::normalize_library_depth_median_ratio(data)
     }else{
       stop(paste("'normalize_method' must be one of 'relative' or 'median_ratio', got:",normalize_method))
     }
     
-    .print_progress("Running DESeq2 and combining p-values...\n")
+    .print_progress("Running DESeq2 and combining p-values...")
     ### 4. Run DESeq2 and harmonic mean p-value combination.
     res <- delboy::get_crispr_gene_level_hits(data, grna_column, gene_column, controls, treatments, target_fdr)
     
     ### 5. Estimate performance and learn a summary logfc metric threshold to reduce FDR below the target FDR.
     if(!is.null(max.iter)){
-      .print_progress("Estimating algorithm performance...\n")
+      .print_progress("Estimating algorithm performance...")
       # Correct signal associated with known sample groupings.
       data.sc <- delboy::prep_val_data(data, controls, treatments, "sgRNA", "gene", NULL)
       # Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
@@ -88,7 +87,7 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     }
     
     ### 6. Mark up any predicted FPs using any logfc FDR thresholds from the validation data.
-    .print_progress("Finishing up...\n")
+    .print_progress("Finishing up...")
     # Positive.
     if(!is.na(perf_eval.pos$lfc_fdr_threshold)){
       res$hmp_gene_pos <- delboy::mark_up_FPs(res$hmp_gene_pos, perf_eval.pos$metr_fdr_thr$metric,
@@ -100,7 +99,7 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
                                               perf_eval.neg$lfc_fdr_threshold, "less")
     }
     # Combine pos and neg non-null logFC distribution estimates for plotting.
-    if(!is.na(el)){
+    if(is.list(el)){
       lfc_distr <- data.frame(lfc = c(el$non_null.pos.lfc, el$non_null.neg.lfc),
                               dens = c(el$non_null.pos.dens/sum(el$non_null.pos.dens),
                                        el$non_null.neg.dens/sum(el$non_null.neg.dens)),
@@ -112,6 +111,7 @@ run_delboy_crispr <- function(data, controls, treatments, filter_cutoff, grna_co
     
     ### 7. Build return object.
     ret <- list(data.norm = data,
+                norm.method = normalize_method,
                 results = res,
                 perf_esitmation = !is.na(max.iter),
                 logfc_nonnull_distr = lfc_distr,

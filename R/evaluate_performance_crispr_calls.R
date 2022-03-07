@@ -26,6 +26,7 @@ evaluate_performance_crispr_calls <- function(data, data_lfc, group_1, group_2,
                                               max.iter, num_non_null, lfc, lfc_dens, 
                                               alt_hyp, target_fdr = 0.1){
   if(!alt_hyp %in% c("less","greater")) stop("'alt_hyp' must be one of 'less' or 'greater'")
+  set.seed(1)
   tryCatch({
     # 1. Prep data for seqgendiff.
     data.m <- delboy::prep_count_matrix(data, group_1, group_2, grna_column)

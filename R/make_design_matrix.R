@@ -4,7 +4,7 @@
 #'
 #' @param group_1 A character vector naming the columns that belong to group 1.
 #' @param group_2 A character vector naming the columns that belong to group 2.
-#' @param treat_samps A character vector indicating which samples are treatment samples. `NULL` (default) indicates they should be randomly samples (`length(group_2)`).
+#' @param treat_samps A character vector indicating which samples are treatment samples. `NULL` (default) indicates they should be randomly sampled (`length(group_2)`).
 #' @param random_treat Logical indicating whether the number of treatment samples should be a random number between 2 and `length(group_1) + length(group_2) - 2`, or not. Defaults to `FALSE` - there will be `length(group_2)` treatment samples.
 #'
 #' @return A design matrix.
@@ -13,7 +13,7 @@ make_design_matrix <- function(group_1, group_2, treat_samps = NULL, random_trea
   if(!is.null(treat_samps)){
     if(any(!treat_samps %in% c(group_1, group_2)))
       stop(paste("some of all of treat samps not found in sample set.\nTreatment samples:",
-                 treat_samps,"\nAll samps:",c(group_1,group_2)))
+                 paste(treat_samps,collapse=","),"\nAll samps:",paste(c(group_1,group_2),collapse=",")))
   }
   tryCatch({
     samples <- c(group_1, group_2)
