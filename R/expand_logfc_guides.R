@@ -33,7 +33,8 @@ expand_logfc_guides <- function(data, gene_col, lfc_col, med_lfc, lfc_half_windo
         min_lfc <- min(0, tfc - lfc_half_window)
         max_lfc <- min(0, tfc + lfc_half_window)
       }else{
-        stop("'med_lfc' values must be all positive or all negative")
+        min_lfc <- tfc - lfc_half_window
+        max_lfc <- tfc + lfc_half_window
       }
       # Find a gene with a median logFC within window of the focal logFC.
       td <- mlfc %>%
@@ -46,7 +47,7 @@ expand_logfc_guides <- function(data, gene_col, lfc_col, med_lfc, lfc_half_windo
         # Mean deviation of logFC values for this gene.
         dplyr::mutate(mean_dev_lfc = !! lfc_sym - mean(!! lfc_sym, na.rm = T)) %>%
         dplyr::filter(!is.na(mean_dev_lfc))
-      if(nrow(tfv) < 2) next
+      if(nrow(tfv) == 0) next
       # Use mean deviations to generate sample of logFC values for this gene.
       ret <- rbind(ret, data.frame(Gene = tgene, num = i, logFC = tfc + tfv$mean_dev_lfc))
     }

@@ -6,7 +6,7 @@
     dplyr::group_by(gene) %>%
     dplyr::mutate(sgRNA = data_from$id[data_from$gene == gene[1]][1:dplyr::n()]) %>%
     dplyr::ungroup() %>%
-    dplyr::filter(!duplicated(sgRNA))
+    dplyr::filter(!duplicated(sgRNA) & !is.na(sgRNA))
   return(data_to)
 }
 
@@ -38,7 +38,7 @@ sample_lfc_genes_guides <- function(data_lfc, num_non_null, gene_column, lfc_col
     
     # 3. Sample genes and guides to add signal to.
     genes_signal <- sample(unique(unlist(data_lfc[,gene_column],use.names = F)), 
-                           length(unique(lfc_samp_df$Gene)), replace = F)
+                           length(unique(lfc_samp_df$num)), replace = F)
     names(lfc_samp) <- genes_signal
     names(genes_signal) <- 1:length(genes_signal)
     

@@ -22,6 +22,7 @@
 #' @export
 #' @importFrom dplyr %>% select
 #' @importFrom rlang sym !!
+#' @importFrom seqgendiff thin_diff
 add_signal_val_data <- function(data, data.m, group_1, group_2, treat_samps, lfc_samp_grna, grna_column){
   tryCatch({
     # 1. Create coefficient matrix for seqgendiff.
