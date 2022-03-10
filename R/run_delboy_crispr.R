@@ -103,8 +103,7 @@ run_delboy_crispr <- function(data, controls, treatments, grna_column, gene_colu
       }
     }
     # Build single results data frame for both pos and neg.
-    res_both <- res$hmp_gene_pos %>%
-      dplyr::full_join(res$hmp_gene_neg, by = "gene", suffix = c(".pos",".neg"))
+    res_both <- delboy::combine_pos_neg_res(res$hmp_gene_pos, res$hmp_gene_neg)
     
     # Combine pos and neg non-null logFC distribution estimates for plotting.
     if(is.list(el)){
