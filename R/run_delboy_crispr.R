@@ -20,7 +20,7 @@
 #' @param filter_prop A numerical value (0-1) to filter the lowest abundance genes when estimating the non-null logFC distribution for performance estimation. Defaults to 0.05.
 #'
 #' @return An object of class `delboy_crispr`.
-#' @importFrom dplyr %>% arrange desc filter summarise n mutate
+#' @importFrom dplyr %>% arrange desc filter summarise n mutate full_join
 #' @importFrom rlang sym !!
 #' @importFrom utils read.delim packageVersion
 #' @export
@@ -89,15 +89,23 @@ run_delboy_crispr <- function(data, controls, treatments, grna_column, gene_colu
     ### 6. Mark up any predicted FPs using any logfc FDR thresholds from the validation data.
     .print_progress("Finishing up...")
     # Positive.
-    if(!is.na(perf_eval.pos$lfc_fdr_threshold)){
-      res$hmp_gene_pos <- delboy::mark_up_FPs(res$hmp_gene_pos, perf_eval.pos$metr_fdr_thr$metric,
-                                              perf_eval.pos$lfc_fdr_threshold, "greater")
+    if(is.list(perf_eval.pos)){
+      if(!is.na(perf_eval.pos$lfc_fdr_threshold)){
+        res$hmp_gene_pos <- delboy::mark_up_FPs(res$hmp_gene_pos, perf_eval.pos$metr_fdr_thr$metric,
+                                                perf_eval.pos$lfc_fdr_threshold, "greater")
+      }
     }
     # Negative.
-    if(!is.na(perf_eval.neg$lfc_fdr_threshold)){
-      res$hmp_gene_neg <- delboy::mark_up_FPs(res$hmp_gene_neg, perf_eval.neg$metr_fdr_thr$metric,
-                                              perf_eval.neg$lfc_fdr_threshold, "less")
+    if(is.list(perf_eval.neg)){
+      if(!is.na(perf_eval.neg$lfc_fdr_threshold)){
+        res$hmp_gene_neg <- delboy::mark_up_FPs(res$hmp_gene_neg, perf_eval.neg$metr_fdr_thr$metric,
+                                                perf_eval.neg$lfc_fdr_threshold, "less")
+      }
     }
+    # Build single results data frame for both pos and neg.
+    res_both <- res$hmp_gene_pos %>%
+      dplyr::full_join(res$hmp_gene_neg, by = "gene", suffix = c(".pos",".neg"))
+    
     # Combine pos and neg non-null logFC distribution estimates for plotting.
     if(is.list(el)){
       lfc_distr <- data.frame(lfc = c(el$non_null.pos.lfc, el$non_null.neg.lfc),
@@ -112,7 +120,8 @@ run_delboy_crispr <- function(data, controls, treatments, grna_column, gene_colu
     ### 7. Build return object.
     ret <- list(data.norm = data,
                 norm.method = normalize_method,
-                results = res,
+                results_gene = res_both,
+                results_all = res,
                 perf_esitmation = !is.na(max.iter),
                 logfc_nonnull_distr = lfc_distr,
                 target_fdr = target_fdr,
