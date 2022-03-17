@@ -22,6 +22,7 @@ adjust_nonnull_lfc_estimates <- function(res, filter_prop = 0.05){
     
     # 2. Estimate non-null logFC distribution.
     el <- delboy::estimate_nonnull_logfc_distr(lfc$mean_log2FoldChange, signed = TRUE)
+    if(!el$fit_ok) return(el)
     
     # 3. Adjust downwards if median is greater than empirical observation for significant hits.
     mdn_orig.pos <- stats::median((res$hmp_gene_pos %>%

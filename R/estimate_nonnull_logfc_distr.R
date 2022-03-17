@@ -18,20 +18,21 @@
 #' @importFrom locfdr locfdr
 #' @importFrom dplyr between
 estimate_nonnull_logfc_distr <- function(logfc, signed = FALSE){
-  misfit <- FALSE
   tryCatch({
-    withCallingHandlers({
+    logfc <- .cleanup_qnorm(logfc)
+    if(!signed){
+      # To stabilise estimates we exclude extreme logFC asymmetries between negative and positive ends of the distribution.
       minr <- .min_range(logfc)
-      if(!signed){
-        # To stabilise estimates we exclude extreme logFC asymmetries between negative and positive ends of the distribution.
-        lfc <- logfc[dplyr::between(logfc,-minr, minr)]
-      }else{
-        lfc <- logfc
-      }
-      lfdr.lfc <- locfdr::locfdr(lfc, plot = 0)
-    },
-    warning = function(w) misfit <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
+      lfc <- logfc[dplyr::between(logfc,-minr, minr)]
+    }else{
+      lfc <- logfc
+    }
+    tryCatch(
+      lfdr.lfc <- locfdr::locfdr(lfc, plot = 0),
+      error = function(e) cat("locfdr cannot estimate non-null logFC distribution\n")
     )
+    if(!exists("lfdr.lfc"))
+      return(list(fit_ok = FALSE))
     if(!signed){
       non_null.dens <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],11]
       non_null.lfc <- lfdr.lfc$mat[1:which(lfdr.lfc$mat[,11]==0)[1],1]
@@ -57,7 +58,7 @@ estimate_nonnull_logfc_distr <- function(logfc, signed = FALSE){
                 non_null.pos.lfc = non_null.pos.lfc,
                 non_null.neg.dens = non_null.neg.dens,
                 non_null.neg.lfc = non_null.neg.lfc,
-                misfit = misfit)
+                fit_ok = TRUE)
   },
   error = function(e) stop(paste("unable to estimate the non-null logFC distribution:",e))
   )

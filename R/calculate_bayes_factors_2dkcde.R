@@ -17,7 +17,6 @@
 #' @export
 #' @importFrom rlang !! sym
 #' @importFrom dplyr select filter mutate %>% rowwise ungroup
-#' @importFrom ks kcde
 calculate_bayes_factors_2dkcde <- function(data, data_bs, fc_column, expr_column, group_column){
   # Sanity checks.
   if(!group_column %in% colnames(data_bs)) stop(paste("unable to find",group_column,"in 'data'"))
@@ -38,8 +37,8 @@ calculate_bayes_factors_2dkcde <- function(data, data_bs, fc_column, expr_column
       dplyr::select(!!rlang::sym(fc_column))
 
     # 2. Estimate 2d cumulative distribution functions for TPs and FPs.
-    Fhat_tp <- ks::kcde(as.matrix(data_bs.tp))
-    Fhat_fp <- ks::kcde(as.matrix(data_bs.fp))
+    #Fhat_tp <- ks::kcde(as.matrix(data_bs.tp))
+    #Fhat_fp <- ks::kcde(as.matrix(data_bs.fp))
 
     # 3. Predict 2d cumulative probabilities for query data.
     cp_tp <- predict(Fhat_tp, x = as.matrix(data_query))

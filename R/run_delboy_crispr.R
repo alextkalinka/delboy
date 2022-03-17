@@ -69,19 +69,24 @@ run_delboy_crispr <- function(data, controls, treatments, grna_column, gene_colu
       data.sc <- delboy::prep_val_data(data, controls, treatments, "sgRNA", "gene", NULL)
       # Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
       el <- delboy::adjust_nonnull_lfc_estimates(res, filter_prop = filter_prop)
-      # Positive end.
-      perf_eval.pos <- delboy::evaluate_performance_crispr_calls(data.sc, res$deseq2_pos, controls, treatments,
-                                                                 "gene", "sgRNA", "log2FoldChange",
-                                                                 max.iter, 200, el$non_null.pos.lfc, el$non_null.pos.dens,
-                                                                 "greater")
-      # Negative end.
-      perf_eval.neg <- delboy::evaluate_performance_crispr_calls(data.sc, res$deseq2_neg, controls, treatments,
-                                                                 "gene", "sgRNA", "log2FoldChange",
-                                                                 max.iter, 200, el$non_null.neg.lfc, el$non_null.neg.dens,
-                                                                 "less")
-      # Combine original and validation data.
-      orig_val_hits.pos <- delboy::combine_hits_orig_val_data(res$hmp_gene_pos, perf_eval.pos$hits)
-      orig_val_hits.neg <- delboy::combine_hits_orig_val_data(res$hmp_gene_neg, perf_eval.neg$hits)
+      if(el$fit_ok){
+        # Positive end.
+        perf_eval.pos <- delboy::evaluate_performance_crispr_calls(data.sc, res$deseq2_pos, controls, treatments,
+                                                                   "gene", "sgRNA", "log2FoldChange",
+                                                                   max.iter, 200, el$non_null.pos.lfc, el$non_null.pos.dens,
+                                                                   "greater")
+        # Negative end.
+        perf_eval.neg <- delboy::evaluate_performance_crispr_calls(data.sc, res$deseq2_neg, controls, treatments,
+                                                                   "gene", "sgRNA", "log2FoldChange",
+                                                                   max.iter, 200, el$non_null.neg.lfc, el$non_null.neg.dens,
+                                                                   "less")
+        # Combine original and validation data.
+        orig_val_hits.pos <- delboy::combine_hits_orig_val_data(res$hmp_gene_pos, perf_eval.pos$hits)
+        orig_val_hits.neg <- delboy::combine_hits_orig_val_data(res$hmp_gene_neg, perf_eval.neg$hits)
+      }else{
+        .db_message("unable to estimate non-null logFC distribution: skipping performance estimation","blue")
+        el <- perf_eval.pos <- perf_eval.neg <- orig_val_hits.pos <- orig_val_hits.neg <- NA
+      }
     }else{
       el <- perf_eval.pos <- perf_eval.neg <- orig_val_hits.pos <- orig_val_hits.neg <- NA
     }

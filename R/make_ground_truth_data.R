@@ -23,6 +23,7 @@ make_ground_truth_data <- function(data, ctrl, treat, grna_column, gene_column, 
   data.sc <- delboy::prep_val_data(data, ctrl, treat, grna_column, gene_column, NULL)
   # 3. Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
   el <- delboy::adjust_nonnull_lfc_estimates(data_lfc, filter_prop = 0.05)
+  if(!el$fit_ok) return(el)
   # 4. Combine pos and neg logFC values for plotting.
   lfc_distr <- data.frame(lfc = c(el$non_null.pos.lfc, el$non_null.neg.lfc),
                           dens = c(el$non_null.pos.dens/sum(el$non_null.pos.dens),
@@ -48,6 +49,7 @@ make_ground_truth_data <- function(data, ctrl, treat, grna_column, gene_column, 
               lfc_distr = lfc_distr,
               lfc_samp = lfc_samp,
               signal_ls = signal_ls,
-              treat_samps = treat_sig))
+              treat_samps = treat_sig,
+              fit_ok = TRUE))
   
 }
