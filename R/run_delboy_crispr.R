@@ -68,7 +68,7 @@ run_delboy_crispr <- function(data, controls, treatments, grna_column, gene_colu
       # Correct signal associated with known sample groupings.
       data.sc <- delboy::prep_val_data(data, controls, treatments, "sgRNA", "gene", NULL)
       # Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
-      el <- delboy::adjust_nonnull_lfc_estimates(res, filter_prop = filter_prop)
+      el <- delboy::try_filter_props_nnull_lfc(res, filter_prop = filter_prop)
       if(el$fit_ok){
         # Positive end.
         perf_eval.pos <- delboy::evaluate_performance_crispr_calls(data.sc, res$deseq2_pos, controls, treatments,
