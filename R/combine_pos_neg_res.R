@@ -8,6 +8,7 @@
 #' @return A data frame.
 #' @export
 #' @importFrom dplyr %>% full_join mutate rename select arrange
+#' @importFrom magrittr %<>%
 combine_pos_neg_res <- function(data_pos, data_neg){
   tryCatch({
     both <- data_pos %>%
@@ -22,6 +23,16 @@ combine_pos_neg_res <- function(data_pos, data_neg){
       dplyr::select(-mean_log2FoldChange.neg, -median_log2FoldChange.neg,
                     -mean_baseMean.neg, -sd_log2FoldChange.neg) %>%
       dplyr::arrange(pvalue.harmonic_mean.pos, gene)
+    # If we only have 'Predicted_False_Positive' col, then determine if 'pos' or 'neg'.
+    if("Predicted_False_Positive" %in% colnames(both)){
+      if("Predicted_False_Positive" %in% colnames(data_pos)){
+        both %<>%
+          dplyr::rename(Predicted_False_Positive.pos = Predicted_False_Positive)
+      }else{
+        both %<>%
+          dplyr::rename(Predicted_False_Positive.neg = Predicted_False_Positive)
+      }
+    }
   },
   error = function(e) stop(paste("unable to combine positive and negative CRISPR results:",e))
   )
