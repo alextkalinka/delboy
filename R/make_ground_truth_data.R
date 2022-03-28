@@ -9,20 +9,29 @@
 #' @param gene_column A character string naming the gene column in `data`.
 #' @param num_non_null An integer specifying the number of non-null cases to add signal to.
 #' @param treat_sig The samples to be treated as treatment samples.
+#' @param data_lfc Output from `delboy::get_crispr_gene_level_hits`. If `NULL` (default) this will be produced within the function.
+#' @param data.sc Output from `delboy::prep_val_data`. If `NULL` (default) this will be produced within the function.
+#' @param el Output from `delboy::adjust_nonnull_lfc_estimates`. If `NULL` (default) this will be produced within the function.
+#' @param normalize Logical, whether to normalize the data or not (default = `FALSE`).
 #' 
 #' @return A list.
 #' @export
 #' @importFrom magrittr %<>%
 #' @importFrom dplyr mutate select everything
 #' @importFrom rlang sym !!
-make_ground_truth_data <- function(data, ctrl, treat, grna_column, gene_column, num_non_null, treat_sig){
+make_ground_truth_data <- function(data, ctrl, treat, grna_column, gene_column, num_non_null, treat_sig, 
+                                   data_lfc = NULL, data.sc = NULL, el = NULL, normalize = FALSE){
   # 1. Estimate logFC distribution to sample signal.
-  data <- delboy::normalize_library_depth_relative(data, NULL)
-  data_lfc <- delboy::get_crispr_gene_level_hits(data, grna_column, gene_column, ctrl, treat, 0.1)
+  if(normalize)
+    data <- delboy::normalize_library_depth_relative(data, NULL)
+  if(is.null(data_lfc))
+    data_lfc <- delboy::get_crispr_gene_level_hits(data, grna_column, gene_column, ctrl, treat, 0.1)
   # 2. Correct signal in original data.
-  data.sc <- delboy::prep_val_data(data, ctrl, treat, grna_column, gene_column, NULL)
+  if(is.null(data.sc))
+    data.sc <- delboy::prep_val_data(data, ctrl, treat, grna_column, gene_column, NULL)
   # 3. Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
-  el <- delboy::adjust_nonnull_lfc_estimates(data_lfc, filter_prop = 0.05)
+  if(is.null(el))
+    el <- delboy::adjust_nonnull_lfc_estimates(data_lfc, filter_prop = 0.05)
   if(!el$fit_ok) return(el)
   # 4. Combine pos and neg logFC values for plotting.
   lfc_distr <- data.frame(lfc = c(el$non_null.pos.lfc, el$non_null.neg.lfc),

@@ -11,7 +11,11 @@ make_ground_truth_data(
   grna_column,
   gene_column,
   num_non_null,
-  treat_sig
+  treat_sig,
+  data_lfc = NULL,
+  data.sc = NULL,
+  el = NULL,
+  normalize = FALSE
 )
 }
 \arguments{
@@ -28,6 +32,14 @@ make_ground_truth_data(
 \item{num_non_null}{An integer specifying the number of non-null cases to add signal to.}
 
 \item{treat_sig}{The samples to be treated as treatment samples.}
+
+\item{data_lfc}{Output from \code{delboy::get_crispr_gene_level_hits}. If \code{NULL} (default) this will be produced within the function.}
+
+\item{data.sc}{Output from \code{delboy::prep_val_data}. If \code{NULL} (default) this will be produced within the function.}
+
+\item{el}{Output from \code{delboy::adjust_nonnull_lfc_estimates}. If \code{NULL} (default) this will be produced within the function.}
+
+\item{normalize}{Logical, whether to normalize the data or not (default = \code{FALSE}).}
 }
 \value{
 A list.
