@@ -4,16 +4,25 @@
 \alias{hits}
 \title{hits}
 \usage{
-hits(delboy_res, remove_predicted_false_positives = FALSE)
+hits(
+  delboy_res,
+  all_res = FALSE,
+  remove_predicted_false_positives = TRUE,
+  dir = NULL
+)
 }
 \arguments{
-\item{delboy_res}{An object of class \code{delboy} as produced by \code{delboy::run_delboy}.}
+\item{delboy_res}{An object of class \code{delboy} or \code{delboy_crispr} as produced by \code{delboy::run_delboy}.}
 
-\item{remove_predicted_false_positives}{Logical indicating whether predicted false positives should be removed. Defaults to \code{FALSE}.}
+\item{all_res}{Logical indicating whether to return all genes, or just significant hits. Default = \code{TRUE}.}
+
+\item{remove_predicted_false_positives}{Logical indicating whether predicted false positives should be removed. Defaults to \code{TRUE}.}
+
+\item{dir}{A character string naming the direction of hits required: \code{pos}, \code{neg}, if \code{NULL}, then return both.}
 }
 \value{
 A data frame.
 }
 \description{
-Extract hits from an object of class \code{delboy}.
+Extract hits from an object of class \code{delboy} or \code{delboy_crispr}.
 }

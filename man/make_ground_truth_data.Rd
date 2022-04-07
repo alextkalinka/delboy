@@ -15,6 +15,7 @@ make_ground_truth_data(
   data_lfc = NULL,
   data.sc = NULL,
   el = NULL,
+  method = "combat_seq",
   normalize = FALSE
 )
 }
@@ -38,6 +39,8 @@ make_ground_truth_data(
 \item{data.sc}{Output from \code{delboy::prep_val_data}. If \code{NULL} (default) this will be produced within the function.}
 
 \item{el}{Output from \code{delboy::adjust_nonnull_lfc_estimates}. If \code{NULL} (default) this will be produced within the function.}
+
+\item{method}{A character string naming the batch correction method: \code{combat_seq} (default) or \code{combat}.}
 
 \item{normalize}{Logical, whether to normalize the data or not (default = \code{FALSE}).}
 }

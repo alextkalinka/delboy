@@ -4,7 +4,7 @@
 \alias{batch_correct}
 \title{batch_correct}
 \usage{
-batch_correct(data, batches, gene_column, parametric = FALSE)
+batch_correct(data, batches, gene_column, method, parametric = FALSE)
 }
 \arguments{
 \item{data}{A data frame of normalized count data.}
@@ -12,6 +12,8 @@ batch_correct(data, batches, gene_column, parametric = FALSE)
 \item{batches}{A character vector naming the batches that the samples belong to.}
 
 \item{gene_column}{A character string naming the column containing gene names.}
+
+\item{method}{A character string naming the batch correction method: \code{combat_seq} or \code{combat}.}
 
 \item{parametric}{Logical, whether to perform a parametric correction or not (defaults to \code{FALSE}).}
 }

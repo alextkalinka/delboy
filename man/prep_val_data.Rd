@@ -10,6 +10,7 @@ prep_val_data(
   group_2,
   grna_column,
   gene_column,
+  bc_method = "combat_seq",
   normalize_method = "relative"
 )
 }
@@ -23,6 +24,8 @@ prep_val_data(
 \item{grna_column}{A character string naming the column containing gene names.}
 
 \item{gene_column}{A character string naming the column containing gene names.}
+
+\item{bc_method}{A character string naming the batch correction method: \code{combat_seq} (default) or \code{combat}.}
 
 \item{normalize_method}{A character string naming the read depth normalization method: \code{relative} (default) or \code{median_ratio}. \code{NULL} indicates no normalization.}
 }

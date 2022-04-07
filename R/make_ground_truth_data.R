@@ -12,6 +12,7 @@
 #' @param data_lfc Output from `delboy::get_crispr_gene_level_hits`. If `NULL` (default) this will be produced within the function.
 #' @param data.sc Output from `delboy::prep_val_data`. If `NULL` (default) this will be produced within the function.
 #' @param el Output from `delboy::adjust_nonnull_lfc_estimates`. If `NULL` (default) this will be produced within the function.
+#' @param method A character string naming the batch correction method: `combat_seq` (default) or `combat`.
 #' @param normalize Logical, whether to normalize the data or not (default = `FALSE`).
 #' 
 #' @return A list.
@@ -20,7 +21,7 @@
 #' @importFrom dplyr mutate select everything
 #' @importFrom rlang sym !!
 make_ground_truth_data <- function(data, ctrl, treat, grna_column, gene_column, num_non_null, treat_sig, 
-                                   data_lfc = NULL, data.sc = NULL, el = NULL, normalize = FALSE){
+                                   data_lfc = NULL, data.sc = NULL, el = NULL, method="combat_seq", normalize = FALSE){
   # 1. Estimate logFC distribution to sample signal.
   if(normalize)
     data <- delboy::normalize_library_depth_relative(data, NULL)
@@ -28,7 +29,7 @@ make_ground_truth_data <- function(data, ctrl, treat, grna_column, gene_column, 
     data_lfc <- delboy::get_crispr_gene_level_hits(data, grna_column, gene_column, ctrl, treat, 0.1)
   # 2. Correct signal in original data.
   if(is.null(data.sc))
-    data.sc <- delboy::prep_val_data(data, ctrl, treat, grna_column, gene_column, NULL)
+    data.sc <- delboy::prep_val_data(data, ctrl, treat, grna_column, gene_column, method=bc_method, normalize_method=NULL)
   # 3. Estimate non-null logFC distribution and adjust to ensure alignment with empirical distribution (from DESeq2).
   if(is.null(el))
     el <- delboy::adjust_nonnull_lfc_estimates(data_lfc, filter_prop = 0.05)

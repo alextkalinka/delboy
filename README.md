@@ -2,11 +2,8 @@
 
 ## Summary
 
-`delboy` is an `R` package for conducting differential-expression analyses on RNA-seq data in which there are exactly **two groups** to be contrasted. The method is designed to improve sensitivity for under-powered data-sets, in which the effect sizes are small and there are few replicates, while controlling the False Discovery Rate (FDR).
+`delboy` is an `R` package for conducting analysis of pooled CRISPR screens, or differential-expression analyses on RNA-seq data in which there are exactly **two groups** to be contrasted. 
 
-`delboy` - **D**ifferential-representation analysis by **E**lastic-net **L**ogistic regression with **B**in**O**mial-thinning validit**Y** tests.
-
-You can read about the method in the companion [manuscript](https://www.biorxiv.org/content/10.1101/2020.10.15.340737v1.full).
 
 ## Installation
 
@@ -16,6 +13,42 @@ devtools::install_github("alextkalinka/delboy")
 ```
 
 ## Usage
+
+### CRISPR screen
+
+Input data should be a data frame of counts in which rows are guide RNAs and columns are samples, and there should be a gRNA ID and gene ID column.
+
+```r
+# Example count data.
+head(counts,1)
+#         sgRNA gene ctrl-1 ctrl-2 treat-1 treat-2# 1 grna-A1BG-1 A1BG    520    382     297      80
+
+# Run delboy crispr.
+db <- delboy::run_delboy_crispr(data = counts,
+		controls = c("ctrl-1", "ctrl-2"),
+		treatments = c("treat-1", "treat-2"),
+		grna_column = "sgRNA",
+		gene_column = "gene")
+		
+# Extract significant positive and negative hits.
+res <- delboy::hits(db)
+
+# Just positive hits.
+res <- delboy::hits(db, dir = "pos")
+
+# Just negative hits.
+res <- delboy::hits(db, dir = "neg")
+
+# All results.
+res <- delboy::hits(db, all_res = TRUE)
+
+```
+
+### RNAseq data
+
+`delboy` - **D**ifferential-representation analysis by **E**lastic-net **L**ogistic regression with **B**in**O**mial-thinning validit**Y** tests.
+
+You can read about the method in the companion [manuscript](https://www.biorxiv.org/content/10.1101/2020.10.15.340737v1.full).
 
 Input data should be a data frame of normalized counts in which there is a gene column with the remaining columns being sample columns.
 
