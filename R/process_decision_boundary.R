@@ -7,7 +7,6 @@
 #' @return A data frame.
 #' @export
 #' @importFrom grDevices chull
-#' @importFrom smoothr smooth_ksmooth
 process_decision_boundary <- function(data.grid){
   tryCatch({
     # Extract DB.
@@ -16,7 +15,7 @@ process_decision_boundary <- function(data.grid){
     db.chull <- grDevices::chull(as.matrix(db))
     # Densify and smooth.
     if(length(db.chull) > 5){
-      db.ks <- smoothr::smooth_ksmooth(as.matrix(db[db.chull,]))
+      #db.ks <- smoothr::smooth_ksmooth(as.matrix(db[db.chull,]))
       db.chull <- grDevices::chull(db.ks)
       db_sm <- as.data.frame(db.ks[db.chull,])
     }else{

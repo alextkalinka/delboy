@@ -9,7 +9,6 @@
 #' @param parametric Logical, whether to perform a parametric correction or not (defaults to `FALSE`).
 #'
 #' @return A data frame of batch-corrected data (can contain negative values).
-#' @importFrom sva ComBat
 #' @importFrom dplyr %>% mutate select everything
 #' @importFrom rlang := !! sym
 #' @export
@@ -22,11 +21,11 @@ batch_correct <- function(data, batches, gene_column, method, parametric = FALSE
 
     # 2. Batch correct using ComBat.
     if(method == "combat" & !parametric){
-      data.bc <- sva::ComBat(data.m, batch = factor(batches), par.prior = FALSE)
+      #data.bc <- sva::ComBat(data.m, batch = factor(batches), par.prior = FALSE)
     }else if(method == "combat" & parametric){
-      data.bc <- sva::ComBat(data.m, batch = factor(batches), par.prior = TRUE)
+      #data.bc <- sva::ComBat(data.m, batch = factor(batches), par.prior = TRUE)
     }else if(method == "combat_seq"){
-      data.bc <- sva::ComBat_seq(data.m, batch = factor(batches))
+      #data.bc <- sva::ComBat_seq(data.m, batch = factor(batches))
     }else{
       stop(paste("unrecognised batch correction method:",method))
     }

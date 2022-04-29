@@ -9,7 +9,7 @@
 
 ```r
 # install.packages("devtools")
-devtools::install_github("alextkalinka/delboy", ref = "harmonic_meanp")
+devtools::install_github("alextkalinka/delboy", ref = "rm_deg_deps")
 ```
 
 ## Usage

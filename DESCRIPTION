@@ -1,7 +1,7 @@
 Package: delboy
 Title: Differential-representation analysis by Elastic-net Logistic
     regression with BinOmial-thinning validitY tests
-Version: 0.0.6
+Version: 0.0.6-1
 Authors@R: 
     person("Alex", "Kalinka", , "alex.t.kalinka@gmail.com", role = c("aut", "cre"))
 Description: Improves sensitivity for under-powered
@@ -24,9 +24,7 @@ Imports:
     PRROC,
     rlang (>= 0.4.6),
     seqgendiff (>= 1.2.2),
-    smoothr (>= 0.1.2),
     stats,
-    sva (>= 3.36.0),
     svmpath (>= 0.970),
     tidyr (>= 1.1.0),
     tidyselect,
