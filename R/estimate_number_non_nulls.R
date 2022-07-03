@@ -3,13 +3,16 @@
 # locfdr call.
 .call_locfdr <- function(qvals){
   misfit <- FALSE
-  withCallingHandlers({
-    lfdr <- locfdr::locfdr(qvals, plot = 0)
-  },
-  warning = function(w) misfit <<- gsub("^.*?misfit = (\\S+)\\.\\s+?.*$","\\1",w)
+  tryCatch(
+    lfdr <- locfdr::locfdr(qvals, plot = 0),
+    error = function(e) cat("unable to estimate num non-null cases")
   )
-  mf <- .calculate_locfdr_misfit(qvals, lfdr)
-  return(list(locfdr = lfdr, misfit = mf, misfit_reported = misfit))
+  if(exists("lfdr")){
+    mf <- .calculate_locfdr_misfit(qvals, lfdr)
+  }else{
+    lfdr <- NA; mf <- Inf
+  }
+  return(list(locfdr = lfdr, misfit = mf))
 }
 
 
@@ -109,7 +112,10 @@ estimate_number_non_nulls <- function(pvals){
     fits[[4]] <- .call_locfdr(qvals[[4]])
     
     misfits <- unlist(lapply(fits, function(x) x$misfit))
-    min_misfit <- which(misfits == min(misfits, na.rm=T))[1]
+    mmf <- min(misfits, na.rm=T)
+    if(is.infinite(mmf))
+      return(list(num.non_null = NA))
+    min_misfit <- which(misfits == mmf)[1]
     best_fit <- fits[[min_misfit]]
     qn <- qvals[[min_misfit]]
     lfdr <- best_fit$locfdr

@@ -1,12 +1,9 @@
 Package: delboy
-Title: Differential-representation analysis by Elastic-net
-    Logistic regression with BinOmial-thinning validitY tests
-Version: 0.0.2-1
+Title: Differential-representation analysis by Elastic-net Logistic
+    regression with BinOmial-thinning validitY tests
+Version: 0.0.6
 Authors@R: 
-    person(given = "Alex",
-           family = "Kalinka",
-           role = c("aut", "cre"),
-           email = "alex.t.kalinka@gmail.com")
+    person("Alex", "Kalinka", , "alex.t.kalinka@gmail.com", role = c("aut", "cre"))
 Description: Improves sensitivity for under-powered
     differential-expression experiments while controlling the FDR.
 License: MIT + file LICENSE
@@ -20,9 +17,11 @@ Imports:
     glmnet (>= 4.0-2),
     graphics,
     grDevices,
+    harmonicmeanp,
     locfdr (>= 1.1-8),
     magrittr (>= 1.5),
     progress,
+    PRROC,
     rlang (>= 0.4.6),
     seqgendiff (>= 1.2.2),
     smoothr (>= 0.1.2),
@@ -30,8 +29,9 @@ Imports:
     sva (>= 3.36.0),
     svmpath (>= 0.970),
     tidyr (>= 1.1.0),
+    tidyselect,
     utils
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.2

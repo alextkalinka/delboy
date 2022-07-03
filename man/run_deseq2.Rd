@@ -4,7 +4,7 @@
 \alias{run_deseq2}
 \title{run_deseq2}
 \usage{
-run_deseq2(data, group_1, group_2, gene_column)
+run_deseq2(data, group_1, group_2, gene_column, alt_hyp = "greaterAbs")
 }
 \arguments{
 \item{data}{A data frame containing normalized count data.}
@@ -14,10 +14,12 @@ run_deseq2(data, group_1, group_2, gene_column)
 \item{group_2}{A character vector naming the columns that belong to group 2.}
 
 \item{gene_column}{A character string naming the column containing gene names.}
+
+\item{alt_hyp}{A character string specifying the alternative hypothesis. Can be one of: \code{greaterAbs} (default), \code{lessAbs}, \code{greater}, or \code{less} (see \code{DESeq2::results} documentation).}
 }
 \value{
 A data frame containing \code{DESeq2} results.
 }
 \description{
-Runs \code{DESeq2} on normalized, batch-corrected data containing two groups to be contrasted.
+Runs \code{DESeq2} on normalized (and potentially also batch-corrected) data containing two groups to be contrasted.
 }
