@@ -13,7 +13,7 @@
 #' @importFrom dplyr %>% mutate select everything
 #' @importFrom rlang := !! sym
 #' @export
-batch_correct <- function(data, batches, gene_column, method, parametric = FALSE){
+batch_correct <- function(data, batches, gene_column, method = "combat", parametric = FALSE){
   tryCatch({
     # 1. Convert to matrix for ComBat.
     data.m <- as.matrix(data %>%

@@ -10,6 +10,7 @@
 #' @param batches A named character vector identifying the batch structure with names identifying sample columns in the data input. The length must equal `length(group_1) + length(group_2)`. If `NULL`, there are no batches, or batches have already been corrected. Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
 #' @param max.iter An integer value indicating the maximum number of validation samples (default = 10). `NULL` indicates all sample combinations should be taken.
 #' @param bcorr_data_validation `NULL` if no batch (signal) corrected data is already available for validation. Otherwise, a data frame of treatment-corrected data should be supplied (to speed up validation, if already available). Defaults to `NULL`. Batch correction will be conducted using `sva::ComBat` using non-parametric priors.
+#' @param bcorr_method A character string naming the batch correction method: `nonparam` (default) or `param`.
 #' @param alpha The elastic-net regression penalty, between 0 and 1 (default = 0.5). If `NULL`, alpha is chosen automatically.
 #'
 #' @return An object of class `delboy`. Access this object using `hits`, `plot.delboy`, `get_performance_stats`, and `get_deseq2_results`.
@@ -25,7 +26,8 @@
 #' * Patro, R. et al. 2017. Salmon provides fast and bias-aware quantification of transcript expression. Nature Methods 14: 417-419.
 run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
                        batches = NULL, max.iter = 10,
-                       bcorr_data_validation = NULL, alpha = 0.5){
+                       bcorr_data_validation = NULL, bcorr_method = "nonparam", 
+                       alpha = 0.5){
   # Random samples taken.
   set.seed(1)
 
@@ -65,6 +67,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
     if(length(setdiff(names(batches),colnames(data))))
       stop(paste("batch samples missing in data input:",setdiff(names(batches),colnames(data))))
   }
+  bcmethod = bcorr_method == "param"
 
   ### 2B. Remove any irrelevant columns and re-order sample columns by groups.
   data <- data[,c(gene_column, group_1, group_2)]
@@ -82,7 +85,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
     cat("Batch correcting data...\n")
     # Re-order batches to match re-ordered sample columns in data input.
     batches <- batches[match(colnames(data)[2:ncol(data)], names(batches))]
-    data <- delboy::batch_correct(data, batches, gene_column)
+    data <- delboy::batch_correct(data, batches, gene_column, parametric = bcmethod)
   }else{
     batches <- NA
   }
@@ -113,7 +116,7 @@ run_delboy <- function(data, group_1, group_2, filter_cutoff, gene_column,
   if(is.null(bcorr_data_validation)){
     cat("Batch correction to create signal-corrected data for validation...\n")
     batches.v <- c(rep("group_1",length(group_1)),rep("group_2",length(group_2)))
-    data.bc <- delboy::batch_correct(data, batches.v, gene_column)
+    data.bc <- delboy::batch_correct(data, batches.v, gene_column, parametric = bcmethod)
   }else{
     batches.v <- NA
     data.bc <- bcorr_data_validation
